@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import copy
 from collections import namedtuple
 Item = namedtuple("Item", ['index', 'value', 'weight'])
 
@@ -13,7 +13,7 @@ def solve_it(input_data):
     firstLine = lines[0].split()
     item_count = int(firstLine[0])
     capacity = int(firstLine[1])
-
+    
     items = []
 
     for i in range(1, item_count+1):
@@ -23,21 +23,47 @@ def solve_it(input_data):
 
     # a trivial greedy algorithm for filling the knapsack
     # it takes items in-order until the knapsack is full
-    value = 0
-    weight = 0
-    taken = [0]*len(items)
-
-    for item in items:
-        if weight + item.weight <= capacity:
-            taken[item.index] = 1
-            value += item.value
-            weight += item.weight
+    ## My code
     
+    itemDict = {}
+    for item in items:
+        itemDict[item] = item.value / float(item.weight)
+    itemStack = sorted(itemDict, key = itemDict.__getitem__, reverse = True)
+    
+    valueTrack = {0: 0}
+    takenTrack = {0: []}
+    
+    for item in itemStack:
+        new_valueTrack = {}
+        new_takenTrack = {}
+        for w in valueTrack:
+            new_valueTrack[w] = valueTrack[w]
+            new_takenTrack[w] = takenTrack[w]
+            new_w = w + item.weight
+            if new_w <= capacity and (not new_w in new_valueTrack or new_valueTrack[new_w] < valueTrack[w] + item.value): 
+                new_valueTrack[new_w] = valueTrack[w] + item.value
+                new_takenTrack[new_w] = takenTrack[w] + [item.index]
+        # clean new_valueTrack and new_takenTrack
+        threshold = -1
+        for w in sorted(new_valueTrack):
+            if new_valueTrack[w] > threshold:
+                threshold = new_valueTrack[w]
+            else:
+                del new_valueTrack[w]
+                del new_takenTrack[w]
+        valueTrack = copy.deepcopy(new_valueTrack)
+        takenTrack = copy.deepcopy(new_takenTrack)
+    
+    value = valueTrack[max(valueTrack)]
+    taken = [0] * len(items)
+    for i in takenTrack[max(takenTrack)]:
+        taken[i] = 1
+    
+    ## End of my code
     # prepare the solution in the specified output format
     output_data = str(value) + ' ' + str(0) + '\n'
     output_data += ' '.join(map(str, taken))
     return output_data
-
 
 import sys
 
