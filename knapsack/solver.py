@@ -25,7 +25,7 @@ def solve_it(input_data):
     
     itemDict = {}
     for item in items:
-        itemDict[item] = item.value / float(item.weight)
+        itemDict[item.index] = item.value / float(item.weight)
     itemStack = sorted(itemDict, key = itemDict.__getitem__, reverse = True)
     
     valueTrack = {0: 0}
@@ -33,18 +33,18 @@ def solve_it(input_data):
     
     slope = 0
     
-    for item in itemStack:
+    for itemIndex in itemStack:
         new_valueTrack = {}
         new_takenTrack = {}
-        if itemDict[item] <= slope:
+        if itemDict[itemIndex] <= slope:
             break
         for w in valueTrack:
             new_valueTrack[w] = valueTrack[w]
             new_takenTrack[w] = takenTrack[w]
-            new_w = w + item.weight
-            if new_w <= capacity and (not new_w in new_valueTrack or new_valueTrack[new_w] < valueTrack[w] + item.value): 
-                new_valueTrack[new_w] = valueTrack[w] + item.value
-                new_takenTrack[new_w] = takenTrack[w] + [item.index]
+            new_w = w + items[itemIndex].weight
+            if new_w <= capacity and (not new_w in new_valueTrack or new_valueTrack[new_w] < valueTrack[w] + items[itemIndex].value): 
+                new_valueTrack[new_w] = valueTrack[w] + items[itemIndex].value
+                new_takenTrack[new_w] = takenTrack[w] + [itemIndex]
         # clean new_valueTrack and new_takenTrack
         threshold = -1
         for w in sorted(new_valueTrack):
