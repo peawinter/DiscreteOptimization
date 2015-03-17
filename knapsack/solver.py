@@ -13,7 +13,7 @@ class Solution():
         itemStack = sorted(itemDict, key = itemDict.__getitem__, reverse = True)
         
         if len(itemStack) > 1000:
-            itemStack = item[:1000]
+            itemStack = itemStack[:1000]
         
         valueTrack = {0: 0}
         takenTrack = {0: []}
