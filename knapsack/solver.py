@@ -4,6 +4,54 @@ import copy
 from collections import namedtuple
 Item = namedtuple("Item", ['index', 'value', 'weight'])
 
+class Solution():
+    
+    def solverDP(self, items, capacity):
+        itemDict = {}
+        for item in items:
+            itemDict[item.index] = item.value / float(item.weight)
+        itemStack = sorted(itemDict, key = itemDict.__getitem__, reverse = True)
+        
+        if len(itemStack) > 1000:
+            itemStack = item[:1000]
+        
+        valueTrack = {0: 0}
+        takenTrack = {0: []}
+    
+        slope = 0
+        
+        for itemIndex in itemStack:
+            new_valueTrack = {}
+            new_takenTrack = {}
+            if itemDict[itemIndex] <= slope:
+                break
+            for w in valueTrack:
+                new_valueTrack[w] = valueTrack[w]
+                new_takenTrack[w] = takenTrack[w]
+                new_w = w + items[itemIndex].weight
+                if new_w <= capacity and (not new_w in new_valueTrack or new_valueTrack[new_w] < valueTrack[w] + items[itemIndex].value): 
+                    new_valueTrack[new_w] = valueTrack[w] + items[itemIndex].value
+                    new_takenTrack[new_w] = takenTrack[w] + [itemIndex]
+            # clean new_valueTrack and new_takenTrack
+            threshold = -1
+            for w in sorted(new_valueTrack):
+                if new_valueTrack[w] > threshold:
+                    threshold = new_valueTrack[w]
+                else:
+                    del new_valueTrack[w]
+                    del new_takenTrack[w]
+            valueTrack = copy.deepcopy(new_valueTrack)
+            takenTrack = copy.deepcopy(new_takenTrack)
+            if max(valueTrack) == capacity:
+                second_w = sorted(valueTrack)[-2]
+                slope = (valueTrack[capacity] - valueTrack[second_w]) / float(capacity - second_w)
+    
+        value = valueTrack[max(valueTrack)]
+        taken = [0] * len(items)
+        for i in takenTrack[max(takenTrack)]:
+            taken[i] = 1
+        return (value, taken)
+
 def solve_it(input_data):
     # Modify this code to run your optimization algorithm
 
@@ -22,47 +70,8 @@ def solve_it(input_data):
         items.append(Item(i-1, int(parts[0]), int(parts[1])))
 
     ## My code
-    
-    itemDict = {}
-    for item in items:
-        itemDict[item.index] = item.value / float(item.weight)
-    itemStack = sorted(itemDict, key = itemDict.__getitem__, reverse = True)
-    
-    valueTrack = {0: 0}
-    takenTrack = {0: []}
-    
-    slope = 0
-    
-    for itemIndex in itemStack:
-        new_valueTrack = {}
-        new_takenTrack = {}
-        if itemDict[itemIndex] <= slope:
-            break
-        for w in valueTrack:
-            new_valueTrack[w] = valueTrack[w]
-            new_takenTrack[w] = takenTrack[w]
-            new_w = w + items[itemIndex].weight
-            if new_w <= capacity and (not new_w in new_valueTrack or new_valueTrack[new_w] < valueTrack[w] + items[itemIndex].value): 
-                new_valueTrack[new_w] = valueTrack[w] + items[itemIndex].value
-                new_takenTrack[new_w] = takenTrack[w] + [itemIndex]
-        # clean new_valueTrack and new_takenTrack
-        threshold = -1
-        for w in sorted(new_valueTrack):
-            if new_valueTrack[w] > threshold:
-                threshold = new_valueTrack[w]
-            else:
-                del new_valueTrack[w]
-                del new_takenTrack[w]
-        valueTrack = copy.deepcopy(new_valueTrack)
-        takenTrack = copy.deepcopy(new_takenTrack)
-        if max(valueTrack) == capacity:
-            second_w = sorted(valueTrack)[-2]
-            slope = (valueTrack[capacity] - valueTrack[second_w]) / float(capacity - second_w)
-    
-    value = valueTrack[max(valueTrack)]
-    taken = [0] * len(items)
-    for i in takenTrack[max(takenTrack)]:
-        taken[i] = 1
+    sol = Solution()
+    (value, taken) = sol.solverDP(items, capacity)
     
     ## End of my code
     # prepare the solution in the specified output format
