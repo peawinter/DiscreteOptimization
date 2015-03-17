@@ -1,7 +1,36 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from collections import defaultdict
 
-
+class Solution():
+    def edgeToLst(self, edges):
+        lst = defaultdict(set)
+        for (node0, node1) in edges:
+            lst[node0].add(node1)
+            lst[node1].add(node0)
+        node_sorted = sorted(lst, key = lambda k: len(lst[k]), reverse=True)
+        return (lst, node_sorted)
+    
+    def greedyCG_helper(self, lst, node_sorted):
+        color_dict = dict()
+        color_index = 0
+        while len(color_dict) < len(lst):
+            # find the largest uncolor 
+            neighbor = set()
+            for node in node_sorted:
+                if node not in neighbor and node not in color_dict:
+                    color_dict[node] = color_index
+                    neighbor = neighbor | lst[node]
+            color_index += 1
+        solution = [value for (key, value) in sorted(color_dict.items())]
+        return (solution, color_index + 1)
+    
+    def greedyCG_
+    
+    def greedyCG(self, node_count, edge_count, edges):
+        (lst, node_sorted) = self.edgeToLst(edges)
+        return self.greedyCG_helper(lst, node_sorted)
+        
 def solve_it(input_data):
     # Modify this code to run your optimization algorithm
 
@@ -17,17 +46,19 @@ def solve_it(input_data):
         line = lines[i]
         parts = line.split()
         edges.append((int(parts[0]), int(parts[1])))
-
-    # build a trivial solution
-    # every node has its own color
-    solution = range(0, node_count)
-
+        
+    ## my code
+    
+    sol = Solution()
+    (solution, color_count) = sol.greedyCG(node_count, edge_count, edges)
+    
+    # end of my code
+    
     # prepare the solution in the specified output format
-    output_data = str(node_count) + ' ' + str(0) + '\n'
+    output_data = str(color_count) + ' ' + str(0) + '\n'
     output_data += ' '.join(map(str, solution))
 
     return output_data
-
 
 import sys
 
