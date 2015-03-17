@@ -17,14 +17,10 @@ class Solution():
         
         valueTrack = {0: 0}
         takenTrack = {0: []}
-    
-        slope = 0
         
         for itemIndex in itemStack:
             new_valueTrack = {}
             new_takenTrack = {}
-            if itemDict[itemIndex] <= slope:
-                break
             for w in valueTrack:
                 new_valueTrack[w] = valueTrack[w]
                 new_takenTrack[w] = takenTrack[w]
@@ -42,9 +38,6 @@ class Solution():
                     del new_takenTrack[w]
             valueTrack = copy.deepcopy(new_valueTrack)
             takenTrack = copy.deepcopy(new_takenTrack)
-            if max(valueTrack) == capacity:
-                second_w = sorted(valueTrack)[-2]
-                slope = (valueTrack[capacity] - valueTrack[second_w]) / float(capacity - second_w)
     
         value = valueTrack[max(valueTrack)]
         taken = [0] * len(items)
