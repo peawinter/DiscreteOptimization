@@ -48,7 +48,6 @@ class Solution():
         value = valueTrack[max(valueTrack)]
         taken = [0] * len(items)
         for i in takenTrack[max(takenTrack)]:
-            print i
             taken[i] = 1
         return (value, taken)
 
