@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from random import shuffle
+import random
 
 class Solution():
     def edgeToLst(self, edges):
@@ -11,7 +13,7 @@ class Solution():
         node_sorted = sorted(lst, key = lambda k: len(lst[k]), reverse=True)
         return (lst, node_sorted)
     
-    def greedyCG_helper(self, lst, node_sorted):
+    def greedyWP(self, lst, node_sorted):
         color_dict = dict()
         color_index = 0
         while len(color_dict) < len(lst):
@@ -25,12 +27,48 @@ class Solution():
         solution = [value for (key, value) in sorted(color_dict.items())]
         return (solution, color_index + 1)
     
-    def greedyCG_
+    def greedyBasic(self, lst, node_seq):
+        n = len(node_seq)
+        visited = [node_seq[0]]
+        unvisited = node_seq[1:]
+        color_set = set(range(n))
+        color_dict = {}
+        color_dict[node_seq[0]] = 0
+        while unvisited:
+            nextNode = unvisited.pop()
+            visited.append(nextNode)
+            taken = set([color_dict[node] for node in lst[nextNode] if node in visited])
+            color_dict[nextNode] = min(color_set - taken)
+        solution = [value for (key, value) in sorted(color_dict.items())]
+        return (solution, max(solution) + 1)
+    
+    def greedyIte(self, lst, node_sorted):
+        best_count = len(lst)
+        for idx in range(500):
+            shuffle(node_sorted)
+            (current_solution, current_count) = self.greedyBasic(lst, node_sorted)
+            print current_count
+            if best_count > current_count:
+                best_solution = current_solution
+                best_count = current_count
+        return (best_solution, best_count)
+    
+    def greedySA(self, lst, node_sorted):
+        best_count = len(lst)
+        tune_para = 
+        for idx in range(500):
+            shuffle(node_sorted)
+            (current_solution, current_count) = self.greedyBasic(lst, node_sorted)
+            print current_count
+            if best_count > current_count:
+                best_solution = current_solution
+                best_count = current_count
+        return (best_solution, best_count)
     
     def greedyCG(self, node_count, edge_count, edges):
         (lst, node_sorted) = self.edgeToLst(edges)
-        return self.greedyCG_helper(lst, node_sorted)
-        
+        return self.greedySA(lst, node_sorted)
+    
 def solve_it(input_data):
     # Modify this code to run your optimization algorithm
 
