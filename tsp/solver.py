@@ -3,6 +3,8 @@
 
 import math
 import random
+import operator
+import itertools
 from collections import namedtuple
 
 Point = namedtuple("Point", ['x', 'y'])
@@ -12,7 +14,8 @@ class Solution():
         tmp = solution[swaps[0]]
         solution[swaps[0]] = solution[swaps[1]]
         solution[swaps[1]] = tmp
-        
+        return solution
+    
     def myAccRate(self, t, swaps, solution):
         self.tuning *= 0.99
         pt1, pt2, pt3 = solution[swaps[0] - 1], solution[swaps[0]], solution[swaps[0] + 1]
@@ -27,6 +30,23 @@ class Solution():
             alpha = 0
         return alpha
     
+    def mySA(self, solution):
+        best_solution = solution
+        best_obj = self.myTotalDist(solution)
+        for iteration in range(100):
+            for t in range(10000):
+                swaps = sorted(random.sample(range(1, self.nodeCount), 2))
+                alpha = self.myAccRate(t, swaps, solution)
+                if random.uniform(0, 1) < alpha:
+                    solution = self.myNewSol(swaps, solution)
+                    obj = self.myTotalDist(solution)
+                    if obj < best_obj:
+                        best_obj = obj
+                        best_solution[:] = solution
+            solution = best_solution
+            obj = best_obj
+        return (solution, obj)
+    
     def myTotalDist(self, solution):
         obj = self.dm[solution[-1]][solution[0]]
         for index in range(0, self.nodeCount - 1):
@@ -34,12 +54,9 @@ class Solution():
         return obj
     
     def myDistMat(self):
-        self.dm = [[0] * self.nodeCount for idx in range(self.nodeCount)]
-        for idx0 in range(self.nodeCount):
-            for idx1 in range(self.nodeCount):
-                self.dm[idx0][idx1] = length(self.points[idx0], self.points[idx1])
+        self.dm = [[length(x,y) for y in self.points] for x in self.points]
     
-    def myGreedyInit(self):
+    def myInit(self):
         solution = [0]
         for idx0 in range(self.nodeCount - 1):
             next_dist = max(self.dm[solution[-1]])
@@ -48,49 +65,26 @@ class Solution():
                     next_dist = self.dm[solution[-1]][idx1]
                     next_pt = idx1
             solution.append(next_pt)
-        return solution
+        return (solution, self.myTotalDist(solution))
     
-    def myLDP(self, solution):
-        best_solution = solution[:3]
-        obj = self.dm[best_solution[0]][best_solution[1]] + self.dm[best_solution[1]][best_solution[2]] + self.dm[best_solution[2]][best_solution[0]]
-        for pt in solution[3:]:
-            best_obj = obj - self.dm[best_solution[-1]][best_solution[0]] + self.dm[best_solution[-1]][pt] + self.dm[pt][best_solution[0]]
-            best_idx = len(best_solution) - 1
-            for idx in range(len(best_solution) - 1):
-                new_obj = obj - self.dm[best_solution[idx]][best_solution[idx + 1]] + self.dm[best_solution[idx]][pt] + self.dm[pt][best_solution[idx + 1]]
-                if new_obj < best_obj:
-                    best_obj = new_obj
-                    best_idx = idx
-            best_solution = best_solution[:(best_idx + 1)] + [pt] + best_solution[(best_idx + 1):]
-            obj = best_obj
-        return (best_solution, best_obj)
-    
-    def myGreedy(self, solution):
-        best_solution = []
-        best_solution[:] = solution
-        best_obj = self.myTotalDist(solution)
-        for iteration in range(100):
-            for t in range(10000):
-                swaps = sorted(random.sample(range(1, self.nodeCount), 2))
-                alpha = self.myAccRate(t, swaps, solution)
-                if random.uniform(0, 1) < alpha:
-                    self.myNewSol(swaps, solution)
-                    obj = self.myTotalDist(solution)
-                    if obj < best_obj:
-                        best_obj = obj
-                        best_solution[:] = solution
-            print best_solution, best_obj
-            solution[:] = best_solution
-            obj = best_obj
-        return (solution, obj)
+    def myDP(self):
+        A = {(frozenset([0, idx + 1]), idx + 1): (dist, [0, idx + 1]) for idx, dist in enumerate(self.dm[0][1:])}
+        for m in range(2, self.nodeCount):
+            B = {}
+            for S in [frozenset(C) | {0} for C in itertools.combinations(range(1, self.nodeCount), m)]:
+                for j in S - {0}:
+                    B[(S, j)] = min( [(A[(S-{j},k)][0] + self.dm[k][j], A[(S-{j},k)][1] + [j]) for k in S if k != 0 and k!=j])
+            A = B
+        res =  min([(A[d][0] + self.dm[0][d[1]], A[d][1]) for d in iter(A)])
+        print res
+        return (res[1], res[0])
     
     def mysol(self, nodeCount, points):
         self.points = points
         self.nodeCount = nodeCount
         self.tuning = 10000000000.0
         self.myDistMat()
-        solution = self.myGreedyInit()
-        return self.myLDP(solution)
+        return self.myDP()
         
 def length(point1, point2):
     return math.sqrt((point1.x - point2.x)**2 + (point1.y - point2.y)**2)
