@@ -105,3 +105,26 @@ programming based algorithm can be modified to have an improved running time of 
 over and over again in exhaustive search. This leads to significant savings in running times, typically at the expense of requiring more space to store previously computed values.
 
 #### Simulated Annealing algorithm
+
+#### Backtrack algorithm
+
+Suppose we have an upper bound for our graph coloring. During the brute force algorithm we can then determine that we need to backtrack when we can’t color a node with a color less than our upper bound.
+
+1. When a node is colored, keep track of the index of when that node is colored. 
+2. For each unique color that is adjacent to the current node that needs backtracking, determine the minimum index calculated in step 1.
+3. Find the maximum of all the minimums calculated in step 2.
+4. Backtrack up to the index found in step 3.
+
+#### Tabu searching algorithm
+
+The basic idea behind TABU search is to take a graph coloring that contains conflicts, and then try to repair the conflicts to produce a valid graph coloring. When a graph coloring contains conflicts, it means that there are some nodes in the graph whose color is the same as an adjacent node.
+
+1. Take a valid graph coloring solution as input.
+2. Reduce the amount of colors used by assigning a random color to the nodes that are colored with the maximum color.
+3. Generate (number of nodes)/4 neighbors for the current coloring by selecting a random node which is in conflict and assign a random color to that node.
+4. Select the neighbor that contains the least amount of conflicts.
+5. Use the neighbor selected in step 4 as the new coloring.
+6. If no conflicts exist, exit the search, otherwise goto step 3 until the maximum number of iterations are reached.
+7. If no solution has been found, increase the number of colors to use and go to step 3.
+
+> Tabu list: during the TABU search, keep a list which contains the reverse move that was done, and don’t allow moves in the list during the following iterations. A list in a FIFO manner of size 15 is proper.

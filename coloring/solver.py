@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from random import shuffle
+from random import choice
 import random
 
 class Solution():
@@ -57,7 +58,7 @@ class Solution():
     # iterated greedy algorithm
     def greedyIte(self, lst, node_sorted):
         best_count = len(lst)
-        for idx in range(10000):
+        for idx in range(100):
             (current_solution, current_count) = self.greedyBasic(lst, node_sorted)
             node_sorted = self.greedReorder(current_solution, idx)
             print current_count
@@ -66,25 +67,110 @@ class Solution():
                 best_count = current_count
         return (best_solution, best_count)
     
-    def simAnn(self, lst, node_sorted):
-        best_count = len(lst)
-        tune_para = 1
-        for idx in range(500):
-            shuffle(node_sorted)
-            (current_solution, current_count) = self.greedyBasic(lst, node_sorted)
-            print current_count
-            if best_count > current_count:
-                best_solution = current_solution
-                best_count = current_count
-        return (best_solution, best_count)
+    # backtrack
+    def isValidBT(self, nodeIdx, colorIdx):
+        for node in self.lst[nodeIdx]:
+            if node != nodeIdx and self.btsol[node] == colorIdx:
+                return False
+        return True
     
+    def backTrackHelper(self, nodeIdx):
+        if nodeIdx == len(self.lst):
+            return True
+        for colorIdx in range(self.upbound):
+            self.btsol[nodeIdx] = colorIdx
+            print self.btsol
+            if self.isValidBT(nodeIdx, colorIdx):
+                print nodeIdx + 1
+                if self.backTrackHelper(nodeIdx + 1):
+                    return True
+            self.btsol[nodeIdx] = -1
+        return False
+        
+    def backTrack(self, lst, node_sorted):
+        self.btsol = [-1] * len(lst)
+        self.upbound = 17
+        self.lst = lst
+        self.backTrackHelper(0)
+        return (self.btsol, max(self.btsol) + 1)
+    
+    # tabu searching
+    def isConflict(self, solution, nodeIdx):
+        for node in self.lst[nodeIdx]:
+            if node != nodeIdx and solution[node] == solution[nodeIdx]:
+                return True
+        return False
+    
+    def conflictLst(self, solution):
+        node_conflict = []
+        for nodeIdx in range(len(self.lst)):
+            if self.isConflict(solution, nodeIdx):
+                node_conflict.append(nodeIdx)
+        return node_conflict
+    
+    def isValidTB(self, solution):
+        if self.conflictLst(solution):
+            return False
+        return True
+    
+    def tabu(self, lst, node_sorted):
+        self.lst = lst
+        # step 1, generate a valid input
+        (sol, cnt) = self.greedyBasic(lst, node_sorted)
+        
+        neighbor_sol = []
+        neighbor_sol_best = []
+        neighbor_confLst = []
+        neighbor_confLst_best = []
+        
+        for layer in range(50):
+            # step 2.0, Iterated Greedy
+            for idx in range(100):
+                node_sorted = self.greedReorder(sol, idx)
+                (sol, cnt) = self.greedyBasic(lst, node_sorted)
+            
+            print layer, cnt
+            
+            # step 2, decrease color 
+            tb_cnt = cnt - 1
+            tb_sol = []
+            
+            for col in sol:
+                if col == tb_cnt:
+                    tb_sol.append(choice(range(tb_cnt)))
+                else:
+                    tb_sol.append(col)
+            # step 3, find best neighbor
+            for ite in range(10 * (layer + 1)):
+                tb_confLst = self.conflictLst(tb_sol)
+                if not tb_confLst:
+                    sol[:] = tb_sol
+                    cnt = max(sol) + 1
+                    break
+                neighbor_confLst_best[:] = tb_confLst
+                # step 3.1, generate new neighbors
+                for idx in range(len(tb_sol) / 4):
+                    neighbor_sol[:] = tb_sol
+                    neighbor_sol[choice(tb_confLst)] = choice(range(tb_cnt))
+                    neighbor_confLst = self.conflictLst(neighbor_sol)
+                    if len(neighbor_confLst) <= len(neighbor_confLst_best):
+                        neighbor_confLst_best[:] = neighbor_confLst
+                        neighbor_sol_best[:] = neighbor_sol
+                    if not neighbor_confLst:
+                        break
+                tb_sol[:] = neighbor_sol_best
+                tb_cnt = max(tb_sol) + 1
+            print layer, cnt
+        return (sol, cnt)
+    
+    # main function
     def colorGraph(self, node_count, edge_count, edges):
         (lst, node_sorted) = self.edgeToLst(edges)
-        return self.greedyIte(lst, node_sorted)
+        return self.tabu(lst, node_sorted)
     
-    def degree(self, lst):
-        for key, val in lst.iteritems():
-            print key, val
+    # def degree(self, lst):
+    #     for key, val in lst.iteritems():
+    #         print key, val
     
 def solve_it(input_data):
     # Modify this code to run your optimization algorithm

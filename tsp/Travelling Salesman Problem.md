@@ -43,17 +43,35 @@ Time Complexity: $$O(n2^n)$$ subproblems, and each one takes linear time to solv
 
 Space complexity: exponential.
 
-### Simulated Annealing Algorithm
+### 2-X Algorithm
 
-costprevious = infinite
-temperature = temperature_start
-while temperature > temperature_end:
-    costnew = cost_function(...)
-    difference = costnew - costprevious
-    if difference < 0 or  e(-difference/temperature) > random(0,1):
-        costprevious = costnew
-    temperature = temperature * cooling_factor
+> When the cost function satisfies the triangle inequality, we can design an approximate algorithm for TSP that returns a tour whose cost is not more than twice the cost of an optimal tour.
+> 
+> First, compute a MST (minimum spanning tree) whose weight is a lower bound on the length of an optimal TSP tour. Then, use MST to build a tour whose cost is no more than twice that of MST's weight as long as the cost function satisfies triangle inequality.
+
+Algorithm
+
+1. Let root r be a in following given set of points (graph).
+	
+	![](http://www.personal.kent.edu/~rmuhamma/Algorithms/MyAlgorithms/AproxAlgor/Gifs/tsp_a.gif)
+
+2. Construct MST from root a using MST-PRIM $$(G, c, r)$$.
+	
+	![](http://www.personal.kent.edu/~rmuhamma/Algorithms/MyAlgorithms/AproxAlgor/Gifs/tsp_b.gif)
+
+3. List vertices visited in preorder walk. $$L = {a, b, c, h, d, e, f, g}$$.
+
+	![](http://www.personal.kent.edu/~rmuhamma/Algorithms/MyAlgorithms/AproxAlgor/Gifs/tsp_c.gif)
+
+4. Return Hamiltonian cycle.
+
+	![](http://www.personal.kent.edu/~rmuhamma/Algorithms/MyAlgorithms/AproxAlgor/Gifs/tsp_d.gif)
+
+(In this case, optimal TSP tour for a given problem (graph) is about 23% shorter.)
+
+### Simulated Annealing Algorithm
 
 ---
 References:
 http://www.geeksforgeeks.org/travelling-salesman-problem-set-1/
+http://www.personal.kent.edu/~rmuhamma/Algorithms/MyAlgorithms/AproxAlgor/TSP/tsp.htm
