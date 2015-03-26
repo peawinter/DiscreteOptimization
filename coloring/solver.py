@@ -3,170 +3,172 @@
 from collections import defaultdict
 from random import shuffle
 from random import choice
+from time import time
+from collections import deque
 import random
 
 class Solution():
     def edgeToLst(self, edges):
-        lst = defaultdict(set)
+        self.lst = defaultdict(set)
         for (node0, node1) in edges:
-            lst[node0].add(node1)
-            lst[node1].add(node0)
-        node_sorted = sorted(lst, key = lambda k: len(lst[k]), reverse=True)
-        return (lst, node_sorted)
+            self.lst[node0].add(node1)
+            self.lst[node1].add(node0)
+        self.node_sorted = sorted(self.lst, key = lambda k: len(self.lst[k]), reverse=True)
     
     # Welsh Powell Algorithm
-    def greedyWP(self, lst, node_sorted):
+    def greedyWP(self):
         color_dict = dict()
         color_index = 0
-        while len(color_dict) < len(lst):
+        while len(color_dict) < len(self.lst):
             # find the largest uncolor 
             neighbor = set()
-            for node in node_sorted:
+            for node in self.node_sorted:
                 if node not in neighbor and node not in color_dict:
                     color_dict[node] = color_index
-                    neighbor = neighbor | lst[node]
+                    neighbor = neighbor | self.lst[node]
             color_index += 1
-        solution = [value for (key, value) in sorted(color_dict.items())]
-        return (solution, color_index + 1)
+        sol = [value for (key, value) in sorted(color_dict.items())]
+        return (sol, max(sol) + 1)
     
     # basic greedy algorithm
-    def greedyBasic(self, lst, node_seq):
-        n = len(node_seq)
-        visited = [node_seq[0]]
-        unvisited = node_seq[1:]
-        color_set = set(range(n))
+    def greedyBC(self):
+        visited = [self.node_sorted[0]]
+        color_set = set(range(len(self.lst)))
         color_dict = {}
-        color_dict[node_seq[0]] = 0
-        for nextNode in node_seq[1:]:
-            visited.append(nextNode)
-            taken = set([color_dict[node] for node in lst[nextNode] if node in visited])
-            color_dict[nextNode] = min(color_set - taken)
-        solution = [value for (key, value) in sorted(color_dict.items())]
-        return (solution, max(solution) + 1)
+        color_dict[self.node_sorted[0]] = 0
+        for node in self.node_sorted[1:]:
+            visited.append(node)
+            taken = set([color_dict[n] for n in self.lst[node] if n in visited])
+            color_dict[node] = min(color_set - taken)
+        sol = [value for (key, value) in sorted(color_dict.items())]
+        return (sol, max(sol) + 1)
     
     # iterated greedy reorder sequence
-    def greedReorder(self, solution, idx):
-        level = range(max(solution) + 1)
+    def greedReorder(self, sol):
+        level = range(max(sol) + 1)
         shuffle(level)
-        disturb_node = range(len(solution))
+        disturb_node = range(len(sol))
         shuffle(disturb_node)
-        new_solution = [level[idx] for idx in solution]
-        node_lst = [x for (z, y, x) in sorted(zip(new_solution, disturb_node, range(len(solution))), reverse = True)]
-        # print [solution[idx] for idx in node_lst]
-        return node_lst
+        sol = [level[idx] for idx in sol]
+        self.node_sorted = [x for (z, y, x) in sorted(zip(sol, disturb_node, range(len(sol))), reverse = True)]
     
     # iterated greedy algorithm
-    def greedyIte(self, lst, node_sorted):
-        best_count = len(lst)
+    def greedyIte(self):
         for idx in range(100):
-            (current_solution, current_count) = self.greedyBasic(lst, node_sorted)
-            node_sorted = self.greedReorder(current_solution, idx)
-            print current_count
-            if best_count > current_count:
-                best_solution = current_solution
-                best_count = current_count
-        return (best_solution, best_count)
+            (sol, cnt) = self.greedyBC()
+            self.greedReorder(sol)
+        return (sol, cnt)
     
+    ##############
     # backtrack
-    def isValidBT(self, nodeIdx, colorIdx):
-        for node in self.lst[nodeIdx]:
-            if node != nodeIdx and self.btsol[node] == colorIdx:
+    def isValidBT(self, node, color):
+        for n in self.lst[node]:
+            if n != node and self.bt_sol[n] == color:
                 return False
         return True
     
-    def backTrackHelper(self, nodeIdx):
-        if nodeIdx == len(self.lst):
+    def backTrackHelper(self, node):
+        if node == len(self.lst):
             return True
-        for colorIdx in range(self.upbound):
-            self.btsol[nodeIdx] = colorIdx
-            print self.btsol
-            if self.isValidBT(nodeIdx, colorIdx):
-                print nodeIdx + 1
-                if self.backTrackHelper(nodeIdx + 1):
+        for color in range(100):
+            self.bt_sol[node] = color
+            if self.isValidBT(node, color):
+                if self.backTrackHelper(node + 1):
                     return True
-            self.btsol[nodeIdx] = -1
+            self.bt_sol[node] = -1
         return False
         
-    def backTrack(self, lst, node_sorted):
-        self.btsol = [-1] * len(lst)
-        self.upbound = 17
-        self.lst = lst
+    def backTrack(self):
+        self.bt_sol = [-1] * len(self.lst)
         self.backTrackHelper(0)
-        return (self.btsol, max(self.btsol) + 1)
+        return (self.bt_sol, max(self.bt_sol) + 1)
+    # end of backtrack
+    ################
     
+    ################
     # tabu searching
-    def isConflict(self, solution, nodeIdx):
-        for node in self.lst[nodeIdx]:
-            if node != nodeIdx and solution[node] == solution[nodeIdx]:
+    def isConflict(self, sol, node):
+        for n in self.lst[node]:
+            if n != node and sol[n] == sol[node]:
                 return True
         return False
     
-    def conflictLst(self, solution):
+    def conflictLst(self, sol):
         node_conflict = []
-        for nodeIdx in range(len(self.lst)):
-            if self.isConflict(solution, nodeIdx):
-                node_conflict.append(nodeIdx)
+        for node in range(len(self.lst)):
+            if self.isConflict(sol, node):
+                node_conflict.append(node)
         return node_conflict
     
-    def isValidTB(self, solution):
-        if self.conflictLst(solution):
+    def isValidTB(self, sol):
+        if self.conflictLst(sol):
             return False
         return True
     
-    def tabu(self, lst, node_sorted):
-        self.lst = lst
+    def tabu(self):
+        # step 0, count time
+        ptime = time()
         # step 1, generate a valid input
-        (sol, cnt) = self.greedyBasic(lst, node_sorted)
+        (sol, cnt) = self.greedyBC()
         
         neighbor_sol = []
         neighbor_sol_best = []
         neighbor_confLst = []
         neighbor_confLst_best = []
         
-        for layer in range(50):
+        for macroIte in range(100):
             # step 2.0, Iterated Greedy
-            for idx in range(100):
-                node_sorted = self.greedReorder(sol, idx)
-                (sol, cnt) = self.greedyBasic(lst, node_sorted)
+            for idx in range(50):
+                self.greedReorder(sol)
+                (sol, cnt) = self.greedyBC()
             
-            print layer, cnt
-            
-            # step 2, decrease color 
+            # step 2.1, decrease color 
             tb_cnt = cnt - 1
             tb_sol = []
-            
-            for col in sol:
+            tb_sol[:] = sol
+            for idx, col in enumerate(tb_sol):
                 if col == tb_cnt:
-                    tb_sol.append(choice(range(tb_cnt)))
-                else:
-                    tb_sol.append(col)
+                    tb_sol[idx] = choice(range(tb_cnt))
+            
+            tabu_moves = deque(maxlen = 20)
+            print macroIte, cnt
             # step 3, find best neighbor
-            for ite in range(10 * (layer + 1)):
+            for ite in range(100):
                 tb_confLst = self.conflictLst(tb_sol)
                 if not tb_confLst:
                     sol[:] = tb_sol
-                    cnt = max(sol) + 1
+                    cnt = tb_cnt
                     break
                 neighbor_confLst_best[:] = tb_confLst
                 # step 3.1, generate new neighbors
-                for idx in range(len(tb_sol) / 4):
+                for idx in range(len(tb_confLst)):
                     neighbor_sol[:] = tb_sol
-                    neighbor_sol[choice(tb_confLst)] = choice(range(tb_cnt))
+                    new_move = (choice(tb_confLst), choice(range(tb_cnt)))
+                    while new_move in tabu_moves:
+                        new_move = (choice(tb_confLst), choice(range(tb_cnt)))
+                    tabu = (new_move[0], neighbor_sol[new_move[0]])
+                    neighbor_sol[new_move[0]] = new_move[1]
                     neighbor_confLst = self.conflictLst(neighbor_sol)
                     if len(neighbor_confLst) <= len(neighbor_confLst_best):
                         neighbor_confLst_best[:] = neighbor_confLst
                         neighbor_sol_best[:] = neighbor_sol
+                        tabu_best = tabu
                     if not neighbor_confLst:
                         break
                 tb_sol[:] = neighbor_sol_best
                 tb_cnt = max(tb_sol) + 1
-            print layer, cnt
+                tabu_moves.append(tabu_best)
+            print macroIte, cnt
         return (sol, cnt)
+    
+    # mix strategy
+    def mix(self, lst, node_sorted):
+        pass
     
     # main function
     def colorGraph(self, node_count, edge_count, edges):
-        (lst, node_sorted) = self.edgeToLst(edges)
-        return self.tabu(lst, node_sorted)
+        self.edgeToLst(edges)
+        return self.tabu()
     
     # def degree(self, lst):
     #     for key, val in lst.iteritems():
