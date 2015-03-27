@@ -46,6 +46,34 @@ The problem comes from coloring a map such that no two neighbor regions have the
 
 ## Algorithms
 
+#### Dynamic Programming algorithm
+
+Algorithm:
+
+1. Find and list all sets that are $$1-colorable$$. 
+2. Proceed in an inductive manner. Given all sets that are $$1-colorable$$ and all sets that are $$(j-1)-colorable$$, find all sets that are $$j-colorable$$.
+
+	> - For each candidate set, try all ways of partitioning it in two and checking whether one part is $$1-colorable$$ and other is $$(j-1)-colorable$$. The total number of checks is $$\sum_{S \in V} 2^{|S|} = 3^n$$. (A ternary vector can represent a check. The 0 entries are those vertices not in S. the 1 entries are those vertices in the independent set. The 2 entries are those in the $$(j − 1)-colorable$$ set.)
+
+Time complexity: $$O(3^n)$$
+
+Space complexity: $$O(2^n)$$
+
+- Remark
+	- By considering only maximal independent sets, the dynamic
+programming based algorithm can be modified to have an improved running time of $$O(2.45^n)$$.
+	- Dynamic programming is a method that avoids redoing computations
+over and over again in exhaustive search. This leads to significant savings in running times, typically at the expense of requiring more space to store previously computed values.
+
+#### Backtrack algorithm
+
+Suppose we have an upper bound for our graph coloring. During the brute force algorithm we can then determine that we need to backtrack when we can’t color a node with a color less than our upper bound.
+
+1. When a node is colored, keep track of the index of when that node is colored. 
+2. For each unique color that is adjacent to the current node that needs backtracking, determine the minimum index calculated in step 1.
+3. Find the maximum of all the minimums calculated in step 2.
+4. Backtrack up to the index found in step 3.
+
 #### Greedy algorithm
 
 Algorithm:
@@ -85,36 +113,6 @@ Algorithm:
 > - The idea is to use previous information obtained in previous coloring to produce an improved coloring. If we take any permutation in which the vertices of each color class are adjacent in the permutation, then applying the greedy algorithm will produce a coloring at least as good.
 > - Reorder the color labels randomly.
 
-#### Dynamic Programming algorithm
-
-Algorithm:
-
-1. Find and list all sets that are $$1-colorable$$. 
-2. Proceed in an inductive manner. Given all sets that are $$1-colorable$$ and all sets that are $$(j-1)-colorable$$, find all sets that are $$j-colorable$$.
-
-	> - For each candidate set, try all ways of partitioning it in two and checking whether one part is $$1-colorable$$ and other is $$(j-1)-colorable$$. The total number of checks is $$\sum_{S \in V} 2^{|S|} = 3^n$$. (A ternary vector can represent a check. The 0 entries are those vertices not in S. the 1 entries are those vertices in the independent set. The 2 entries are those in the $$(j − 1)-colorable$$ set.)
-
-Time complexity: $$O(3^n)$$
-
-Space complexity: $$O(2^n)$$
-
-- Remark
-	- By considering only maximal independent sets, the dynamic
-programming based algorithm can be modified to have an improved running time of $$O(2.45^n)$$.
-	- Dynamic programming is a method that avoids redoing computations
-over and over again in exhaustive search. This leads to significant savings in running times, typically at the expense of requiring more space to store previously computed values.
-
-#### Simulated Annealing algorithm
-
-#### Backtrack algorithm
-
-Suppose we have an upper bound for our graph coloring. During the brute force algorithm we can then determine that we need to backtrack when we can’t color a node with a color less than our upper bound.
-
-1. When a node is colored, keep track of the index of when that node is colored. 
-2. For each unique color that is adjacent to the current node that needs backtracking, determine the minimum index calculated in step 1.
-3. Find the maximum of all the minimums calculated in step 2.
-4. Backtrack up to the index found in step 3.
-
 #### Tabu searching algorithm
 
 The basic idea behind TABU search is to take a graph coloring that contains conflicts, and then try to repair the conflicts to produce a valid graph coloring. When a graph coloring contains conflicts, it means that there are some nodes in the graph whose color is the same as an adjacent node.
@@ -128,3 +126,13 @@ The basic idea behind TABU search is to take a graph coloring that contains conf
 7. If no solution has been found, increase the number of colors to use and go to step 3.
 
 > Tabu list: during the TABU search, keep a list which contains the reverse move that was done, and don’t allow moves in the list during the following iterations. A list in a FIFO manner of size 15 is proper.
+
+#### Mixed Strategy
+
+1. Execute the Iterative Greedy algorithm for X amount of iterations.
+2. Execute the TABU search algorithm on the best solution found thus far.
+3. Use Y amount of iterations for the search. Goto step 1 until the time is up.
+
+#### Simulated Annealing algorithm
+
+

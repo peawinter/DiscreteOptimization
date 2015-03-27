@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from collections import Counter
 from random import shuffle
 from random import choice
 from time import time
+from math import exp
 from collections import deque
 import random
 
@@ -161,14 +163,70 @@ class Solution():
             print macroIte, cnt
         return (sol, cnt)
     
-    # mix strategy
-    def mix(self, lst, node_sorted):
-        pass
     
+    
+    ###################
+    # simulated annealing strategy
+    def costFun(self, sol):
+        C = Counter()
+        E = Counter()
+        for node, col in enumerate(sol):
+            C[col] += 1
+            for neighbor in self.lst[node]:
+                if sol[neighbor] == col:
+                    E[col] += 1
+        cost1 = 0
+        cost2 = 0
+        for col in C:
+            cost1 += - C[col] ** 2 + C[col] * E[col]
+            cost2 += E[col]
+        return (cost1, cost2, len(C))
+    
+    def AccRate(self, cost1, new_cost1):
+        self.T *= 0.99995
+        return exp((cost1 - new_cost1) / self.T)
+    
+    def SA(self):
+        # step 1, generate a valid input
+        (best_sol, best_cnt) = self.greedyBC()
+        # step 2, iterated greedy to improve the result
+        for idx in range(50):
+            self.greedReorder(best_sol)
+            (best_sol, best_cnt) = self.greedyBC()
+        
+        (best_cost1, best_cost2, best_cnt) = self.costFun(best_sol)
+        # step 3, simulated annealing
+        # for idx in range(1000):
+        curr_sol = []
+        next_sol = []
+        for macIte in range(10):
+            self.T = 10
+            curr_sol[:] = best_sol
+            curr_cnt = best_cnt
+            curr_cost1 = best_cost1
+            curr_cost2 = best_cost2
+            for ite in range(80000):
+                next_sol[:] = curr_sol
+                next_sol[choice(range(len(next_sol)))] = choice(range(curr_cnt))
+                (next_cost1, next_cost2, next_cnt) = self.costFun(next_sol)
+                print ite, curr_cost1, next_cost1
+                if self.AccRate(curr_cost1, next_cost1) > random.random():
+                    curr_sol[:] = next_sol
+                    curr_cnt = next_cnt
+                    curr_cost1 = next_cost1
+                    curr_cost2 = next_cost2
+                if curr_cost2 == 0 and curr_cnt < best_cnt:
+                    best_sol[:] = curr_sol
+                    best_cnt = curr_cnt
+                    best_cost1 = curr_cost1
+                    best_cost2 = curr_cost2
+        print best_cnt
+        return (best_sol, best_cnt)
+        
     # main function
     def colorGraph(self, node_count, edge_count, edges):
         self.edgeToLst(edges)
-        return self.tabu()
+        return self.SA()
     
     # def degree(self, lst):
     #     for key, val in lst.iteritems():
