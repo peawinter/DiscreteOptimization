@@ -200,12 +200,15 @@ class Solution():
         curr_sol = []
         next_sol = []
         for macIte in range(100):
+            for idx in range(100):
+                self.greedReorder(best_sol)
+                (best_sol, best_cnt) = self.greedyBC()
             self.T = 10
             curr_sol[:] = best_sol
             curr_cnt = best_cnt
             curr_cost1 = best_cost1
             curr_cost2 = best_cost2
-            for ite in range(10000):
+            for ite in range(1000):
                 next_sol[:] = curr_sol
                 next_sol[choice(range(len(next_sol)))] = choice(range(curr_cnt))
                 (next_cost1, next_cost2, next_cnt) = self.costFun(next_sol)
@@ -219,9 +222,6 @@ class Solution():
                     best_cnt = curr_cnt
                     best_cost1 = curr_cost1
                     best_cost2 = curr_cost2
-                    for idx in range(1000):
-                        self.greedReorder(best_sol)
-                        (best_sol, best_cnt) = self.greedyBC()
         return (best_sol, best_cnt)
         
     # main function
