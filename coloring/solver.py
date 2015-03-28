@@ -208,7 +208,7 @@ class Solution():
             curr_cnt = best_cnt
             curr_cost1 = best_cost1
             curr_cost2 = best_cost2
-            for ite in range(1000):
+            for ite in range(10000):
                 next_sol[:] = curr_sol
                 next_sol[choice(range(len(next_sol)))] = choice(range(curr_cnt))
                 (next_cost1, next_cost2, next_cnt) = self.costFun(next_sol)
