@@ -190,7 +190,7 @@ class Solution():
         # step 1, generate a valid input
         (best_sol, best_cnt) = self.greedyBC()
         # step 2, iterated greedy to improve the result
-        for idx in range(50):
+        for idx in range(1000):
             self.greedReorder(best_sol)
             (best_sol, best_cnt) = self.greedyBC()
         
@@ -199,17 +199,16 @@ class Solution():
         # for idx in range(1000):
         curr_sol = []
         next_sol = []
-        for macIte in range(10):
+        for macIte in range(100):
             self.T = 10
             curr_sol[:] = best_sol
             curr_cnt = best_cnt
             curr_cost1 = best_cost1
             curr_cost2 = best_cost2
-            for ite in range(80000):
+            for ite in range(10000):
                 next_sol[:] = curr_sol
                 next_sol[choice(range(len(next_sol)))] = choice(range(curr_cnt))
                 (next_cost1, next_cost2, next_cnt) = self.costFun(next_sol)
-                print ite, curr_cost1, next_cost1
                 if self.AccRate(curr_cost1, next_cost1) > random.random():
                     curr_sol[:] = next_sol
                     curr_cnt = next_cnt
@@ -220,7 +219,9 @@ class Solution():
                     best_cnt = curr_cnt
                     best_cost1 = curr_cost1
                     best_cost2 = curr_cost2
-        print best_cnt
+                    for idx in range(1000):
+                        self.greedReorder(best_sol)
+                        (best_sol, best_cnt) = self.greedyBC()
         return (best_sol, best_cnt)
         
     # main function
