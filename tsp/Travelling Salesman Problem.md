@@ -43,6 +43,13 @@ Time Complexity: $$O(n2^n)$$ subproblems, and each one takes linear time to solv
 
 Space complexity: exponential.
 
+### Nearest Neighbor Algorithm
+
+1. Start from node 0, and set 0 as the end.
+2. Find the next closest node to the end. Add this node to the solution and call this node the end.
+3. Repeat 2 until all nodes are visited.
+4. Connect the end to 0.
+
 ### 2-X Algorithm
 
 > When the cost function satisfies the triangle inequality, we can design an approximate algorithm for TSP that returns a tour whose cost is not more than twice the cost of an optimal tour.
@@ -69,7 +76,11 @@ Algorithm
 
 (In this case, optimal TSP tour for a given problem (graph) is about 23% shorter.)
 
+> 
+
 ### Simulated Annealing Algorithm
+
+### 2-Opt and the3-Opt
 
 ---
 References:

@@ -135,4 +135,11 @@ The basic idea behind TABU search is to take a graph coloring that contains conf
 
 #### Simulated Annealing algorithm
 
+1. Start from a greedy solution
+2. Run iterated greedy on current solution
+3. Run simulated annealing on current solution and track the best solution so far
+4. Go back to step 2
 
+> Cost function $$-\sum(C_i^2) + \sum(C_i E_i)$$, where $$C_i$$ is the number of nodes with color $$i$$, and $$E_i$$ the number of conflict pairs for each color.
+> 
+> Set the initial temperature at 10, the step size $$\alpha = 0.9999$$.
