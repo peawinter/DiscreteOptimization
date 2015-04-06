@@ -13,6 +13,10 @@ Point = namedtuple("Point", ['x', 'y'])
 
 class OldSolution():
     # Helper functions
+    
+    def length(self, point1, point2):
+        return math.sqrt((point1.x - point2.x)**2 + (point1.y - point2.y)**2)
+    
     def myTotalDist(self, sol):
         obj = self.dm[sol[-1]][sol[0]]
         for index in range(0, self.nc - 1):
@@ -20,7 +24,7 @@ class OldSolution():
         return obj
     
     def myDistMat(self):
-        self.dm = [[length(x,y) for y in self.points] for x in self.points]
+        self.dm = [[self.length(x,y) for y in self.points] for x in self.points]
     
     # Dynamic Programming
     def myDP(self):
@@ -153,74 +157,12 @@ class OldSolution():
                 print rep, curr_dist, self.T
         return (curr_sol, curr_dist)
     
-    def detectSubtour(self, x):
-        solDict = defaultdict(set)
-        for e in self.edgeDict:
-            if x[e].value() == 1:
-                solDict[self.edgeDict[e][0]].add(self.edgeDict[e][1])
-                solDict[self.edgeDict[e][1]].add(self.edgeDict[e][0])
-        flag = True
-        unvisited = set(range(self.nc))
-        subtours = []
-        while unvisited:
-            newtour = [unvisited.pop()]
-            newtourset = set(newtour)
-            while not solDict[newtour[-1]].issubset(newtourset):
-                newnode = (solDict[newtour[-1]] - newtourset).pop()
-                newtour.append(newnode)
-                newtourset.add(newnode)
-            subtours.append(newtour)
-            unvisited -= newtourset
-        self.subtours = subtours
-        if len(subtours) > 1:
-            return True
-        return False
-    
-    def myMILP(self):
-        prob = pulp.LpProblem("tsp", pulp.LpMinimize)
-        edges = [str(i) + '-' + str(j) for i in range(self.nc) for j in range(i)]
-        self.edgeDict = dict(zip(edges, [(i, j) for i in range(self.nc) for j in range(i)]))
-        dist = dict(zip(edges, [self.dm[i][j] for i in range(self.nc) for j in range(i)]))
-        x = pulp.LpVariable.dict('%s', edges, lowBound = 0, upBound = 1, cat='Integer')
-        prob += sum([dist[e] * x[e] for e in edges])
-        for i in range(self.nc):
-            coff = dict(zip(edges, [0] * len(edges)))
-            for j in range(self.nc):
-                if i > j:
-                    coff[str(i) + '-' + str(j)] = 1
-                elif i < j:
-                    coff[str(j) + '-' + str(i)] = 1
-            prob += sum([coff[e] * x[e] for e in edges]) == 2
-        prob.solve()
-        # for e in edges:
-        #     print e, x[e].value()
-        times = 1
-        while self.detectSubtour(x):
-            print times
-            times += 1
-            for st in self.subtours:
-                coff = dict(zip(edges, [0] * len(edges)))
-                for idx in range(len(st) - 1):
-                    i = max(st[idx], st[idx + 1])
-                    j = min(st[idx], st[idx + 1])
-                    coff[str(i) + '-' + str(j)] = 1
-                i = max(st[0], st[-1])
-                j = min(st[0], st[-1])
-                coff[str(i) + '-' + str(j)] = 1
-                prob += sum([coff[e] * x[e] for e in edges]) < len(st)
-            prob.solve()
-        curr_sol = self.subtours[0]
-        print curr_sol
-        print len(curr_sol)
-        # curr_dist = self.myTotalDist(curr_sol)
-        # return (curr_sol, curr_dist)
-    
     def mysol(self, nodeCount, points):
         self.points = points
         self.nc = nodeCount
         self.myDistMat()
-        self.myMILP()
-        return self.myGreedy()
+        # self.myMILP()
+        return self.my3OPT()
         
 
 class NewSolution():
@@ -310,7 +252,7 @@ class NewSolution():
             solMat = self.x2solMat(x)
             (subtour, subtour_len) = self.findSubtour(solMat)
             
-            print subtour_len
+            # print subtour_len
             
         return self.extractTour(solMat)
         
@@ -336,7 +278,7 @@ def solve_it(input_data):
 
     # build a trivial solution
     # visit the nodes in the order they appear in the file
-    sol = NewSolution()
+    sol = OldSolution()
     (solution, obj) = sol.mysol(nodeCount, points)
 
     # prepare the solution in the specified output format
