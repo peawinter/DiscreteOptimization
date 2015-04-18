@@ -56,8 +56,8 @@ class Solution():
                 for idx2 in range(idx1 + 1, self.nc):
                     i0, j0 = curr_sol[idx1 - 1], curr_sol[idx1]
                     i1, j1 = curr_sol[idx2 - 1], curr_sol[idx2]
-                    gain = self.dm[i0, j0] + self.dm[i1, j1] + self.penalty[i0, j0] + self.penalty[i1, j1]
-                    cost = self.dm[i0, i1] + self.dm[j0, j1] + self.penalty[i0, i1] + self.penalty[j0, j1]
+                    gain = self.dm[i0, j0] + self.dm[i1, j1] + (self.penalty[i0, j0] + self.penalty[i1, j1]) * self.Lambda
+                    cost = self.dm[i0, i1] + self.dm[j0, j1] + (self.penalty[i0, i1] + self.penalty[j0, j1]) * self.Lambda
                     if gain > cost:
                         curr_sol = curr_sol[:idx1] + curr_sol[idx1:idx2][::-1] + curr_sol[idx2:]
                         flag = True
@@ -71,8 +71,8 @@ class Solution():
             [idx1, idx2] = sorted(random.sample(range(self.nc), 2))
             i0, j0 = curr_sol[idx1 - 1], curr_sol[idx1]
             i1, j1 = curr_sol[idx2 - 1], curr_sol[idx2]
-            gain = self.dm[i0, j0] + self.dm[i1, j1] + self.penalty[i0, j0] + self.penalty[i1, j1]
-            cost = self.dm[i0, i1] + self.dm[j0, j1] + self.penalty[i0, i1] + self.penalty[j0, j1]
+            gain = self.dm[i0, j0] + self.dm[i1, j1] + (self.penalty[i0, j0] + self.penalty[i1, j1]) * self.Lambda
+            cost = self.dm[i0, i1] + self.dm[j0, j1] + (self.penalty[i0, i1] + self.penalty[j0, j1]) * self.Lambda
             if gain > cost:
                 curr_sol = curr_sol[:idx1] + curr_sol[idx1:idx2][::-1] + curr_sol[idx2:]
                 flag = True
