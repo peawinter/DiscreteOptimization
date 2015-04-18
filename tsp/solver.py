@@ -13,8 +13,12 @@ from collections import defaultdict
 Point = namedtuple("Point", ['x', 'y'])
 
 def length(c1, c2):
-
     return math.sqrt(((c1.x - c2.x) ** 2) + ((c1.y - c2.y) ** 2))
+
+def myDistMat(cities):
+    dm = [[length(x, y) for y in cities] for x in cities]
+    dm = np.array(dm)
+    return dm
 
 def random_permutation(cities):
     perm = range(len(cities))
@@ -38,7 +42,7 @@ def cost(cand, penalties, cities, l):
     cost, acost = augmented_cost(cand["vector"], penalties, cities, l)
     cand["cost"], cand["aug_cost"] = cost, acost
 
-def local_search(nodeCount, current, cities, penalties, max_no_improv, l):
+def local_search(nodeCount, current, cities, penalties, max_no_improv, l, dm):
     count  = 0
     cost(current, penalties, cities, l)
 
@@ -50,8 +54,8 @@ def local_search(nodeCount, current, cities, penalties, max_no_improv, l):
 
         i0, j0 = current["vector"][idx1 - 1], current["vector"][idx1]
         i1, j1 = current["vector"][idx2 - 1], current["vector"][idx2]
-        gain = length(cities[i0], cities[j0]) + length(cities[i1], cities[j1]) + (penalties[i0, j0] + penalties[i1, j1]) * l
-        loss = length(cities[i0], cities[i1]) + length(cities[j0], cities[j1]) + (penalties[i0, i1] + penalties[j0, j1]) * l
+        gain = dm[i0, j0] + dm[i1, j1] + (penalties[i0, j0] + penalties[i1, j1]) * l
+        loss = dm[i0, i1] + dm[j0, j1] + (penalties[i0, i1] + penalties[j0, j1]) * l
         if gain > loss:
             curr_sol = current["vector"]
             candidate = {}
@@ -86,14 +90,15 @@ def search(nodeCount, cities):
     alpha = 0.3
     l = 0
     
+    dm = myDistMat(cities)
+    
     current = {}
     current["vector"] = random_permutation(cities)
     best = None
     penalties = np.zeros((nodeCount, nodeCount))
 
     for i in range(max_iterations):
-        current = local_search(nodeCount, current, cities, penalties, max_no_improv, l)
-        # utilities = calculate_feature_utilities(penalties, cities, current["vector"])
+        current = local_search(nodeCount, current, cities, penalties, max_no_improv, l, dm)
         update_penalties(nodeCount, penalties, cities, current["vector"])
 
         if best is None or current["cost"] < best["cost"]:
