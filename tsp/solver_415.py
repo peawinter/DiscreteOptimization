@@ -5,7 +5,6 @@ import math
 import random
 import operator
 import itertools
-import pulp
 from collections import namedtuple
 from collections import defaultdict
 

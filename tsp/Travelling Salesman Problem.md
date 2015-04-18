@@ -74,13 +74,11 @@ Algorithm
 
 	![](http://www.personal.kent.edu/~rmuhamma/Algorithms/MyAlgorithms/AproxAlgor/Gifs/tsp_d.gif)
 
-(In this case, optimal TSP tour for a given problem (graph) is about 23% shorter.)
+### Simulated Annealing
 
-> 
+### 2-Opt, 3-Opt, and k-Opt
 
-### Simulated Annealing Algorithm
-
-### 2-Opt and the3-Opt
+### Guided local search
 
 ---
 References:
