@@ -84,8 +84,8 @@ def update_penalties(nodeCount, penalties, cities, permutation):
     
 def search(nodeCount, cities):
     
-    max_iterations = nodeCount * 10
-    max_no_improv = nodeCount * 20
+    max_iterations = nodeCount * 15
+    max_no_improv = nodeCount * 30
     alpha = 0.3
     l = 0
     
