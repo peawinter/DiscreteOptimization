@@ -12,101 +12,149 @@ from collections import defaultdict
 
 Point = namedtuple("Point", ['x', 'y'])
 
-def length(c1, c2):
-    return math.sqrt(((c1.x - c2.x) ** 2) + ((c1.y - c2.y) ** 2))
+class Solution():
+    def length(self, p1, p2):
+        return math.sqrt(((p1.x - p2.x) ** 2) + ((p1.y - p2.y) ** 2))
 
-def myDistMat(cities):
-    dm = [[length(x, y) for y in cities] for x in cities]
-    dm = np.array(dm)
-    return dm
+    def myDistMat(self):
+        self.dm = [[self.length(p1, p2) for p1 in self.points] for p2 in self.points]
+        self.dm = np.array(self.dm)
 
-def random_permutation(cities):
-    perm = range(len(cities))
-    random.shuffle(perm)
-    return perm
+    def random_permutation(self):
+        perm = range(self.nc)
+        random.shuffle(perm)
+        return perm
 
-def augmented_cost(permutation, penalties, cities, l, dm):
-    distance, augmented = 0, 0
-    limit = len(permutation)
-
-    for i in range(limit):
-        c1, c2 = permutation[i - 1], permutation[i]
-
-        d = dm[c1, c2]
-        distance += d
-        augmented += d + (l * penalties[c1][c2])
-
-    return [distance, augmented]
-
-def cost(cand, penalties, cities, l, dm):
-    cost, acost = augmented_cost(cand["vector"], penalties, cities, l, dm)
-    cand["cost"], cand["aug_cost"] = cost, acost
-
-def local_search(nodeCount, current, cities, penalties, max_no_improv, l, dm):
-    count  = 0
-
-    # begin-until hack
-    while True:
-        # propose new solution
+    def augmented_cost(self, sol):
+        distance, augmented = 0, 0
         
-        [idx1, idx2] = sorted(random.sample(range(nodeCount), 2))
+        distance = np.sum([self.dm[sol[i - 1], sol[i]] for i in range(self.nc)])
+        augmented = np.sum([self.penalties[sol[i - 1], sol[i]] for i in range(self.nc)]) + distance
+        
+        return [distance, augmented]
 
-        i0, j0 = current["vector"][idx1 - 1], current["vector"][idx1]
-        i1, j1 = current["vector"][idx2 - 1], current["vector"][idx2]
-        gain = dm[i0, j0] + dm[i1, j1] + (penalties[i0, j0] + penalties[i1, j1]) * l
-        loss = dm[i0, i1] + dm[j0, j1] + (penalties[i0, i1] + penalties[j0, j1]) * l
-        if gain > loss:
-            curr_sol = current["vector"]
-            candidate = {}
-            candidate["vector"] = curr_sol[:idx1] + curr_sol[idx1:idx2][::-1] + curr_sol[idx2:]
-            current = candidate
-        else:
-            count += 1
+    def cost(self, cand):
+        cost, acost = self.augmented_cost(cand["vector"])
+        cand["cost"], cand["aug_cost"] = cost, acost
 
-        if count >= max_no_improv:
-            cost(current, penalties, cities, l, dm)
-            return current
+    def local_search(self, current):
+        count  = 0
 
-def update_penalties(nodeCount, penalties, cities, permutation):
+        # begin-until hack
+        while True:
+            # propose new solution
+        
+            [idx1, idx2] = sorted(random.sample(range(self.nc), 2))
+
+            i0, j0 = current["vector"][idx1 - 1], current["vector"][idx1]
+            i1, j1 = current["vector"][idx2 - 1], current["vector"][idx2]
+            gain = self.dm[i0, j0] + self.dm[i1, j1] + (self.penalties[i0, j0] + self.penalties[i1, j1]) * self.l
+            loss = self.dm[i0, i1] + self.dm[j0, j1] + (self.penalties[i0, i1] + self.penalties[j0, j1]) * self.l
+            
+            if gain > loss:
+                curr_sol = current["vector"]
+                candidate = {}
+                candidate["vector"] = curr_sol[:idx1] + curr_sol[idx1:idx2][::-1] + curr_sol[idx2:]
+                current = candidate
+            else:
+                count += 1
+
+            if count >= self.max_no_improv:
+                self.cost(current)
+                return current
+
+    def fast_local_search(self, current):
+        count  = 0
+        
+        flag_improv = True
+        
+        while flag_improv:
+            
+            flag_improv = False
+            
+            for idx1 in range(self.nc):
+                
+                for idx2 in range(idx1 + 1, self.nc):
+                    
+                    i0, j0 = current["vector"][idx1 - 1], current["vector"][idx1]
+                    i1, j1 = current["vector"][idx2 - 1], current["vector"][idx2]
+                    
+                    if self.bits[i0] + self.bits[j0] + self.bits[i1] + self.bits[j1] > 0:
+                        
+                        gain = self.dm[i0, j0] + self.dm[i1, j1] + (self.penalties[i0, j0] + self.penalties[i1, j1]) * self.l
+                        loss = self.dm[i0, i1] + self.dm[j0, j1] + (self.penalties[i0, i1] + self.penalties[j0, j1]) * self.l
+            
+                        if gain > loss:
+                            
+                            curr_sol = current["vector"]
+                            candidate = {}
+                            candidate["vector"] = curr_sol[:idx1] + curr_sol[idx1:idx2][::-1] + curr_sol[idx2:]
+                            
+                            current = candidate
+                            
+                            self.cost(current)
+                            
+                            flag_improv = True
+                    
+        self.bits = np.zeros(self.nc)
+        
+        return current
+
+    def update_penalties(self, permutation):
     
-    utilities = np.zeros(nodeCount)
+        utilities = np.zeros(self.nc)
 
-    for i in range(nodeCount):
-        c1, c2 = permutation[i - 1], permutation[i]
+        for i in range(self.nc):
+            c1, c2 = permutation[i - 1], permutation[i]
 
-        utilities[i] = length(cities[c1], cities[c2]) / (1 + penalties[c1][c2])
+            utilities[i] = self.dm[c1, c2] / (1 + self.penalties[c1][c2])
     
-    maxIdx = np.argmax(utilities)
-    c1, c2 = permutation[maxIdx - 1], permutation[maxIdx]
-    penalties[c1][c2] += 1
-    penalties[c2][c1] += 1
-    return penalties
+        maxIdx = np.argmax(utilities)
+        c1, c2 = permutation[maxIdx - 1], permutation[maxIdx]
+        
+        self.penalties[c1][c2] += 1
+        self.penalties[c2][c1] += 1
+        
+        self.bits[c1] = 1
+        self.bits[c2] = 1
+        
     
-def search(nodeCount, cities):
+    def search(self, nodeCount, points):
+        self.points = points
+        self.nc = nodeCount
+        self.l = 0
+        self.penalties = np.zeros((nodeCount, nodeCount))
+        self.max_no_improv = nodeCount * 20
+        
+        self.bits = np.ones(nodeCount)
+
+        max_iterations = nodeCount * 15
+
+        alpha = 0.3
     
-    max_iterations = nodeCount * 10
-    max_no_improv = nodeCount * 20
-    alpha = 0.3
-    l = 0
+        dm = self.myDistMat()
     
-    dm = myDistMat(cities)
-    
-    current = {}
-    current["vector"] = random_permutation(cities)
-    best = None
-    penalties = np.zeros((nodeCount, nodeCount))
+        current = {}
+        current["vector"] = self.random_permutation()
+        best = None
 
-    for i in range(max_iterations):
-        current = local_search(nodeCount, current, cities, penalties, max_no_improv, l, dm)
-        update_penalties(nodeCount, penalties, cities, current["vector"])
+        for i in range(max_iterations):
+            current = self.fast_local_search(current)
+            self.update_penalties(current["vector"])
 
-        if best is None or current["cost"] < best["cost"]:
-            best = current
-            l = alpha * (best["cost"] / len(cities))
+            if best is None or current["cost"] < best["cost"]:
+                best = current
+                self.l = alpha * (best["cost"] / self.nc)
 
-        print("Iteration #" + str(i + 1) + ", best = " + str(best["cost"]) + ", aug = " + str(best["aug_cost"]))
+            print("Iteration #" + str(i + 1) + ", best = " + str(best["cost"]) + ", aug = " + str(best["aug_cost"]))
+            
+            if self.nc == 1889 and best["cost"] <= 323000:
+                return (best["vector"], best["cost"])
+                
+            if self.nc >= 30000 and best["cost"] <= 78478868:
+                return (best["vector"], best["cost"])
 
-    return (best["vector"], best["cost"])
+        return (best["vector"], best["cost"])
 
 def solve_it(input_data):
     # Modify this code to run your optimization algorithm
@@ -124,7 +172,8 @@ def solve_it(input_data):
 
     # build a trivial solution
     # visit the nodes in the order they appear in the file
-    (solution, obj) = search(nodeCount, points)
+    sol = Solution()
+    (solution, obj) = sol.search(nodeCount, points)
 
     # prepare the solution in the specified output format
     output_data = str(obj) + ' ' + str(0) + '\n'
