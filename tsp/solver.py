@@ -25,26 +25,25 @@ def random_permutation(cities):
     random.shuffle(perm)
     return perm
 
-def augmented_cost(permutation, penalties, cities, l):
+def augmented_cost(permutation, penalties, cities, l, dm):
     distance, augmented = 0, 0
     limit = len(permutation)
 
     for i in range(limit):
         c1, c2 = permutation[i - 1], permutation[i]
 
-        d = length(cities[c1], cities[c2])
+        d = dm[c1, c2]
         distance += d
         augmented += d + (l * penalties[c1][c2])
 
     return [distance, augmented]
 
-def cost(cand, penalties, cities, l):
-    cost, acost = augmented_cost(cand["vector"], penalties, cities, l)
+def cost(cand, penalties, cities, l, dm):
+    cost, acost = augmented_cost(cand["vector"], penalties, cities, l, dm)
     cand["cost"], cand["aug_cost"] = cost, acost
 
 def local_search(nodeCount, current, cities, penalties, max_no_improv, l, dm):
     count  = 0
-    cost(current, penalties, cities, l)
 
     # begin-until hack
     while True:
@@ -65,7 +64,7 @@ def local_search(nodeCount, current, cities, penalties, max_no_improv, l, dm):
             count += 1
 
         if count >= max_no_improv:
-            cost(current, penalties, cities, l)
+            cost(current, penalties, cities, l, dm)
             return current
 
 def update_penalties(nodeCount, penalties, cities, permutation):
