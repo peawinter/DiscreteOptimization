@@ -171,7 +171,7 @@ class Solution():
             if self.nc == 1889 and best["cost"] <= 323000:
                 return (best["vector"], best["cost"])
                 
-            if self.nc >= 30000 and best["cost"] <= 78478868:
+            if self.nc >= 30000 and best["cost"] <= 70000000:
                 return (best["vector"], best["cost"])
 
         return (best["vector"], best["cost"])
