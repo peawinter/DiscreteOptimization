@@ -70,36 +70,54 @@ class Solution():
         
         while flag_improv:
             
-            flag_improv = False
-            
             for idx1 in range(self.nc):
-                
-                for idx2 in range(idx1 + 1, self.nc):
-                    
-                    i0, j0 = current["vector"][idx1 - 1], current["vector"][idx1]
-                    i1, j1 = current["vector"][idx2 - 1], current["vector"][idx2]
-                    
-                    if self.bits[i0] + self.bits[j0] + self.bits[i1] + self.bits[j1] > 0:
-                        
-                        gain = self.dm[i0, j0] + self.dm[i1, j1] + (self.penalties[i0, j0] + self.penalties[i1, j1]) * self.l
-                        loss = self.dm[i0, i1] + self.dm[j0, j1] + (self.penalties[i0, i1] + self.penalties[j0, j1]) * self.l
             
-                        if gain > loss:
+                i0, j0 = current["vector"][idx1 - 1], current["vector"][idx1]
+                
+                flag_improv = False
+                
+                if self.bits[i0] + self.bits[j0] > 0:
+                
+                    self.bits[i0] = 0
+                    self.bits[j0] = 0
+                
+                    for idx2 in range(self.nc):
+                
+                        if idx1 != idx2:
+                
+                            i1, j1 = current["vector"][idx2 - 1], current["vector"][idx2]
+                        
+                            gain = self.dm[i0, j0] + self.dm[i1, j1] + (self.penalties[i0, j0] + self.penalties[i1, j1]) * self.l
+                            loss = self.dm[i0, i1] + self.dm[j0, j1] + (self.penalties[i0, i1] + self.penalties[j0, j1]) * self.l
+            
+                            if gain > loss:
                             
-                            curr_sol = current["vector"]
-                            candidate = {}
-                            candidate["vector"] = curr_sol[:idx1] + curr_sol[idx1:idx2][::-1] + curr_sol[idx2:]
+                                curr_sol = current["vector"]
+                                candidate = {}
+                                
+                                idxLo = min(idx1, idx2)
+                                idxUp = max(idx1, idx2)
+                                
+                                candidate["vector"] = curr_sol[:idxLo] + curr_sol[idxLo:idxUp][::-1] + curr_sol[idxUp:]
                             
-                            current = candidate
+                                current = candidate
                             
-                            self.cost(current)
+                                self.bits[i0], self.bits[j0], self.bits[i1], self.bits[j1] = 1, 1, 1, 1
                             
-                            flag_improv = True
+                                flag_improv = True
+                    
+                        if flag_improv:
+                            break
+                
+                if flag_improv:
+                    break
                     
         self.bits = np.zeros(self.nc)
         
+        self.cost(current)
+        
         return current
-
+    
     def update_penalties(self, permutation):
     
         utilities = np.zeros(self.nc)
@@ -139,7 +157,9 @@ class Solution():
         best = None
 
         for i in range(max_iterations):
+            
             current = self.fast_local_search(current)
+            
             self.update_penalties(current["vector"])
 
             if best is None or current["cost"] < best["cost"]:
