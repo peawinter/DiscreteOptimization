@@ -68,6 +68,7 @@ def solve_it(input_data):
         parts = line.split()
         customers.append(Customer(i-1, int(parts[0]), float(parts[1]), float(parts[2])))
 
+    depot = customers[0]
     
     sol = Solution()
     (obj, vehicle_tour) = sol.solver(customer_count, vehicle_count, vehicle_capacity, customers)
