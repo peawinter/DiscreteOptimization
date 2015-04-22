@@ -4,14 +4,14 @@ using Base.Test
 using StatsBase
 
 function solverGreedy(fname)
-    fin = "/Users/shunyong/ACE/Coursera/Discrete Optimization/facility/data/" * fname
+    fin = "/Users/shunyong/ACE/Coursera/Discrete Optimization/facility/" * fname
     f = open(fin, "r")
     raw = split(readline(f), ' ')
     N = int(raw[1])
     M = int(raw[2])
 
-    println("Number of Facility: ", M)
-    println("Number of Custormer: ", N)
+    println("Number of Facility: ", N)
+    println("Number of Custormer: ", M)
 
     data = readdlm(fin, ' ', skipstart = 1)
     sData = data[1:N, 1:4]
@@ -26,7 +26,7 @@ function solverGreedy(fname)
 
     # Create Gurobi model
 
-    m = Model(solver = GurobiSolver())
+    m = Model(solver = GurobiSolver(OutputFlag=0))
 
     @defVar(m, 0 <= x[1:N, 1:M] <= 1, Int)
     @defVar(m, 0 <= y[1:N] <= 1)
@@ -48,8 +48,8 @@ function solverGreedy(fname)
         tmp = 0.0
         idx = 1
         for i = 1:N
-            if tmp < sol[i] < 1
-                tmp = sol[i]
+            if sol[i] < 1 && tmp < sol[i] * sData[i, 2] / sData[i, 1]
+                tmp = sol[i] * sData[i, 2] / sData[i, 1]
                 idx = i
             end
         end
@@ -65,10 +65,11 @@ function solverGreedy(fname)
     solve(m)
 
     cost = int(getObjectiveValue(m))
+    x_mat = getValue(x)
     sol = int(zeros(M))
     for i = 1:N
         for j = 1:M
-            if getValue(x)[i, j] == 1
+            if x_mat[i, j] == 1
                 sol[j] = int(i)
             end
         end
@@ -78,7 +79,7 @@ function solverGreedy(fname)
     println(join((sol - 1), " "))
 
     # write data into file
-    outfile = open("/Users/shunyong/ACE/Coursera/Discrete Optimization/facility/data/" * fname * "_sol", "w")
+    outfile = open("/Users/shunyong/ACE/Coursera/Discrete Optimization/facility/" * fname * "_sol", "w")
     write(outfile, "$cost 0", "\n")
     write(outfile, join((sol - 1), " "))
     close(outfile)
@@ -132,7 +133,7 @@ function solver(fname)
     println(getValue(y))
     cost = int(getObjectiveValue(m))
     sol = int(zeros(M))
-	for i = 1:N
+	  for i = 1:N
         for j = 1:M
             if getValue(x)[i, j] == 1
                 sol[j] = int(i)
@@ -150,4 +151,4 @@ function solver(fname)
     close(outfile)
 end
 
-solver(ARGS[1])
+solverGreedy(ARGS[1])

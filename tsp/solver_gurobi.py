@@ -57,11 +57,11 @@ def subtour(edges):
 
 # Parse argument
 
-if len(sys.argv) < 2:
-    print('Usage: tsp.py npoints')
-    exit(1)
-n = int(sys.argv[1])
-
+# if len(sys.argv) < 2:
+#     print('Usage: tsp.py npoints')
+#     exit(1)
+# n = int(sys.argv[1])
+n = 10
 # Create n random points
 
 random.seed(1)
