@@ -49,7 +49,7 @@ class Solution():
                     obj += length(vehicle_tour[i],vehicle_tour[i+1])
                 obj += length(vehicle_tour[-1],depot)
         
-        return (obj, vehicle_tour)
+        return (obj, vehicle_tours)
 
 def solve_it(input_data):
     # Modify this code to run your optimization algorithm
@@ -71,7 +71,7 @@ def solve_it(input_data):
     depot = customers[0]
     
     sol = Solution()
-    (obj, vehicle_tour) = sol.solver(customer_count, vehicle_count, vehicle_capacity, customers)
+    (obj, vehicle_tours) = sol.solver(customer_count, vehicle_count, vehicle_capacity, customers)
 
     # prepare the solution in the specified output format
     outputData = str(obj) + ' ' + str(0) + '\n'
