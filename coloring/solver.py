@@ -199,8 +199,8 @@ class Solution():
         # for idx in range(1000):
         curr_sol = []
         next_sol = []
-        for macIte in range(10):
-            for idx in range(100):
+        for macIte in range(5000):
+            for idx in range(5000):
                 self.greedReorder(best_sol)
                 (best_sol, best_cnt) = self.greedyBC()
             self.T = 10
