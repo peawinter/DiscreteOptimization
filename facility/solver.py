@@ -105,16 +105,19 @@ class Solution():
 
         # First, open all plants
         for p in plants:
-            open[p].start = 1.0
+            open[p].start = 0
+        
+        openSet = set(range(self.N))
+        
+        if self.N > 90:
+            openSet = set([64, 51, 34, 68, 48, 19, 56])
+        
 
         # Now close the plant with the highest fixed cost
         print('Initial guess:')
         maxFixed = max(self.fixedCosts)
-        for p in plants:
-            if self.fixedCosts[p] == maxFixed:
-                open[p].start = 0.0
-                print('Closing plant %s' % p)
-                break
+        for p in openSet:
+            open[p].start = 1
         print('')
 
         # Use barrier to solve root relaxation
