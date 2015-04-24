@@ -16,9 +16,9 @@ class Solution():
     def length(self, p1, p2):
         return math.sqrt(((p1.x - p2.x) ** 2) + ((p1.y - p2.y) ** 2))
 
-    def myDistMat(self):
-        self.dm = [[self.length(p1, p2) for p1 in self.points] for p2 in self.points]
-        self.dm = np.array(self.dm)
+    # def myDistMat(self):
+    #     self.dm = [[self.length(p1, p2) for p1 in self.points] for p2 in self.points]
+    #     self.dm = np.array(self.dm)
 
     def random_permutation(self):
         perm = range(self.nc)
@@ -28,7 +28,7 @@ class Solution():
     def augmented_cost(self, sol):
         distance, augmented = 0, 0
         
-        distance = np.sum([self.dm[sol[i - 1], sol[i]] for i in range(self.nc)])
+        distance = np.sum([self.length[self.points[sol[i - 1]], self.points[sol[i]]] for i in range(self.nc)])
         augmented = np.sum([self.penalties[sol[i - 1], sol[i]] for i in range(self.nc)]) + distance
         
         return [distance, augmented]

@@ -1,37 +1,8 @@
 #!/usr/bin/python
 
-# Vehicle routing problem
-# Given a list of locations N = 0...n-1, location 0 is the warehouse location
-# where all of the vehicles start and end their routes. The remaining locations
-# are customers. Each location is characterized by a demand d_i, and
-# coordinates (x_i, y_i). The fleet of vehicles V = 0...v-1 is fixed and each
-# vehicle has a limited capacity c. Find a route for each vehicle so that all
-# of the customers are served by exactly one vehicle and the travel distance of
-# the vehicles is minimized.
-
-# Formulation:
-# Minimize:
-# \sum_{j = 0...v-1} ( \sum_{e in E_j} dist_e * z_e )   # E_j is a set of edges
-#  formed by warehouse and those customers served by vehicle j
-# Subject to:
-# (\sum_(i = 1...n-1) d_j h_i,j) <= c_j for j in 0...v-1  # Capacity constraint
-# (\sum_(j = 0...v-1) h_i,j) = 1 for i in 1...n-1  # each customer is served by
-                                                   # exactly one vehicle
-# h_i,j = {0, 1}  # i: customer index, j: vehicle index
-# z_\delta(i = 0) <= 2 * v # number of edges that have end point warehouse 0
-# z_\delta(i) = 2 for i != 0 # number of edges that have end point customer i
-# z_\delta(S) >= 2 for S in V  # number of edges that have exactly one end
-#     point in S and one end point in V-S. This is the subtour elimination
-#     constraint.
-# z_e = {0, 1}, for e in E_j
-
-# The vehicle routing problem is essentially a combination of multi-knapsacks
-# problem and traveling salesman problem.
-
-# Here I use the simulated annealing algorithm to find the optimal routes.
-
 import math
 import random
+import numpy as np
 from collections import namedtuple
 
 Customer = namedtuple("Customer", ['index', 'demand', 'x', 'y'])
@@ -44,26 +15,29 @@ def ori_init(alist, points):
     # Start from origin and connect to nearest neighbor if possible
     blist = list(alist)
     clist = []
-    p = random.randrange(0, len(blist)) # starting point
-    #p = 0
+    
+    p = random.randrange(0, len(blist))
     clist.append(p)
     blist.remove(p)
+    
     while (len(blist) > 0):
+    
         dmin = 1e20
         qmin = blist[0]
         # Find the nearest neighbor to p
         for q in blist:  
-            dis = length(points[p],points[q])
+            dis = length(points[p], points[q])
             if dmin > dis:
                 dmin = dis
                 qmin = q
         p = qmin
         clist.append(p)
         blist.remove(p)
+    
     return clist
 
 def kopt2(vehicle_t, points, obj_kopt):
-    for i_tour in range(0,len(vehicle_t)):
+    for i_tour in range(len(vehicle_t)):
         swaplist = list(vehicle_t[i_tour])
         swaplist = [0] + swaplist + [0]
         swapped = 1
@@ -380,12 +354,6 @@ def rand_move(vehicle_t, points, customers, vehicle_count, vehicle_capacity, obj
     return obj
 
 def solve_it(input_data):
-    # Parse the input data (N: number of locations including warehouse 0, V: number of vehicle, c: vehicle capacity, d_i: demand of customer i, [x,y]: coordinates):
-    # N V c
-    # d_0 x_0 y_0
-    # d_1 x_1 y_1
-    # ...
-    # d_N-1, x_N-1, y_N-1
     
     lines = input_data.split('\n')
 
@@ -449,9 +417,8 @@ def solve_it(input_data):
                 obj += length(points[tour[i]], points[tour[i+1]])
             obj += length(points[tour[-1]], points[0])
         
-        nmove = 300000
+        nmove = 500000
         
-        t = 1. # temperature-like scale, the smaller, the lower temperature
         for t in [5., 4., 3., 2., 1.8, 1.5, 1.3, 1.2, 1.1, 1., 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02, 0.015, 0.01, 0.0075, 0.005]:
         #for t in [1]:
             converge = True
