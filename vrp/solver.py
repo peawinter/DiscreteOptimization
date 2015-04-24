@@ -452,7 +452,7 @@ def solve_it(input_data):
         nmove = 300000
         
         t = 1. # temperature-like scale, the smaller, the lower temperature
-        for t in [5., 4., 3., 2., 1.8, 1.5, 1.3, 1.2, 1.1, 1.]: #, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02, 0.015, 0.01, 0.0075, 0.005]:
+        for t in [5., 4., 3., 2., 1.8, 1.5, 1.3, 1.2, 1.1, 1., 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02, 0.015, 0.01, 0.0075, 0.005]:
         #for t in [1]:
             converge = True
             print "T scale:", t, " minimum so far:", obj_min
@@ -477,16 +477,11 @@ def solve_it(input_data):
         print "Vehicle", v, " :", ' '.join(str(cus) for cus in solution_min[v])
     print "Travel distance: ", obj_min
     
-    #########
-    
     outputData = str(obj_min) + ' ' + str(0) + '\n'
     for v in range(0, vehicle_count):
         outputData += str(0) + ' ' + ' '.join([str(cus) for cus in solution_min[v]]) + ' ' + str(0) + '\n'
 
     return outputData
-    
-    
-    
 
 import sys
 
