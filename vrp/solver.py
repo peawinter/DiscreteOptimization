@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import sys
+import copy
 import math
 import random
 import numpy as np
@@ -112,8 +114,7 @@ def rand_interswap(vehicle_t, points, vc, obj, t):
         vehicle_t[v1][c1-1], vehicle_t[v2][c2-1] = vehicle_t[v2][c2-1], vehicle_t[v1][c1-1]
         #print "obj improved by random swap, with change of ", diff_cost
         obj += diff_cost
-    return obj                
-
+    return obj
 
 def rand_swap(vehicle_t, points, vc, obj, t):
     # Swap orders of customers allocated to a vehicle
@@ -146,9 +147,6 @@ def rand_swap(vehicle_t, points, vc, obj, t):
         #print "obj improved by random swap, with change of ", diff_cost
         obj += diff_cost
     return obj
-
-import copy
-
 
 def rand_insert(vehicle_t, points, vehicle_capacity, vc, obj, t):
     # Move a customer to a different running vehicle
@@ -406,10 +404,11 @@ def solve_it(input_data):
     obj_min = 1.e20
     solution_min = []
     # Start annealing cycle
-    for j in range(6):
-        print "Annealing cycle", j+1
+    for j in range(10):
+        
+        print "Annealing cycle", j + 1
         obj = 0
-        temp = 0
+        
         # calculate the length of the tour
         for tour in vehicle_tours:
             obj += length(points[0], points[tour[0]])
@@ -419,25 +418,28 @@ def solve_it(input_data):
         
         nmove = 1000000
         
-        for t in [5., 4., 3., 2., 1.8, 1.5, 1.3, 1.2, 1.1, 1., 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02, 0.015, 0.01, 0.0075, 0.005]:
-        #for t in [1]:
-            converge = True
+        t = 10
+        
+        converge = False
+        
+        for ite in range(100):
+            
+            t = t * 0.99
+            
             print "T scale:", t, " minimum so far:", obj_min
             # Random move
             for i in range(nmove):
                 obj = rand_move(vehicle_tours, points, customers, vehicle_count, vehicle_capacity, obj, t)
                 if (i % 20000 == 0): print "Iteration", i, " obj value:", obj
                 
-                if (i % 20000 == 0):
-                    if abs(temp - obj) > 1.e-8:
-                        converge = False
-                        
                 if obj_min > obj:
                     obj_min = obj
                     solution_min = copy.deepcopy(vehicle_tours)
-            print
-            temp = obj
-            if converge: break
+                    
+                    if obj_min < 1400:
+                        converge = True
+                    
+        if converge: break
 
     print "Routes for minimize travel distance of vehicles:"
     for v in range(0, len(solution_min)):
@@ -454,7 +456,6 @@ def solve_it(input_data):
 
     return outputData
 
-import sys
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
