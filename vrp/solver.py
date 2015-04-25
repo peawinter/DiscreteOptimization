@@ -416,15 +416,15 @@ def solve_it(input_data):
                 obj += length(points[tour[i]], points[tour[i+1]])
             obj += length(points[tour[-1]], points[0])
         
-        nmove = 1000000
+        nmove = 100000
         
-        t = 10
+        t = 5
         
         converge = False
         
-        for ite in range(100):
+        for ite in range(10):
             
-            t = t * 0.99
+            t = t * 0.9
             
             print "T scale:", t, " minimum so far:", obj_min
             # Random move
