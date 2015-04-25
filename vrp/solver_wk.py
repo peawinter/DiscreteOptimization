@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import sys
+import copy
 import math
 import random
 import numpy as np
@@ -8,10 +10,145 @@ from collections import namedtuple
 Customer = namedtuple("Customer", ['index', 'demand', 'x', 'y'])
 Point = namedtuple("Point", ['x', 'y'])
 
-def length(customer1, customer2):
-    return math.sqrt((customer1.x - customer2.x)**2 + (customer1.y - customer2.y)**2)
+class Solution():
+    
+    def parseInput(self, lines):
+        parts = lines[0].split()
+        
+        self.cust_count = int(parts[0])
+        self.vehi_count = int(parts[1])
+        self.vehi_capa = int(parts[2])
+    
+        self.cust = []
+        self.points = []
+        for line in lines[1:]:
+            parts = line.split()
+            self.cust.append(Customer(i-1, int(parts[0]), float(parts[1]), float(parts[2])))
+            self.points.append(Point(float(parts[1]), float(parts[2])))
+        # self.depot = customers[0]
+    
+    def length(self, c1, c2):
+        return math.sqrt((c1.x - c2.x) ** 2 + (c1.y - c2.y) ** 2)
+    
+    def myDistMat(self):
+        self.dm = [[self.length(x, y) for y in self.points] for x in self.points]
+        self.dm = np.array(dm)
+    
+    def myGreedy(self):
+        # Start from origin and connect to nearest neighbor if possible
+        tmp_list = range(1, self.cust)
+        my_list = [0]
+        p = 0
+    
+        while tmp_list:
+            
+            next_p = tmp_list[0]
+            next_dist = self.dm[p, next_p]
+            
+            for q in tmp_list[1:]:
+                if next_dist > self.dm[p, q]:
+                    next_p = q
+                    next_dist = self.dm[p, q]
+            p = next_p
+            tmp_list.remove(p)
+            my_list.append(p)
+            
+        my_list.remove(0)
+        
+        all_tour = []
+        
+        
+        
+        templist.remove(0)
+        vehicle_tours = []
+        v_used = 1
+        cust_on_vehi = []
+        capacity_remaining = vehicle_capacity
+    
+        for v in range(vehicle_count):
+            capacity_remaining = vehicle_capacity
+            cust_on_vehi = []
+            for i in templist:
+                if capacity_remaining >= customers[i].demand:
+                    cust_on_vehi.append(i)
+                    capacity_remaining -= customers[i].demand
+                #else:
+            if len(cust_on_vehi) > 0:
+                vehicle_tours.append(cust_on_vehi)
+            
+            for i in range(len(cust_on_vehi)):
+                templist.remove(cust_on_vehi[i])
+    
+        if templist != []:
+            print "Error! Some customers were not on a vehicle route!"
+            return 0
+        
+    
+        return clist
+    
+    def mySolver(self, lines):
 
-def ori_init(alist, points):
+        # parse the input
+        self.parseInput(lines)
+        self.myDistMat()
+        
+        # greedy solution
+        
+        
+        #the depot is always the first customer in the input
+        templist = range(0, customer_count) 
+    
+        # Considering no capacity constraint and start from origin then connect to nearest neighbor (like traveling salesman problem)
+    
+        templist = myGreedy(templist, points)
+    
+        #print vehicle_tours
+    
+        obj_min = 1.e20
+        solution_min = []
+        # Start annealing cycle
+        for j in range(3):
+            print "Annealing cycle", j+1
+            obj = 0
+            temp = 0
+            # calculate the length of the tour
+            for tour in vehicle_tours:
+                obj += length(points[0], points[tour[0]])
+                for i in range(0, len(tour)-1):
+                    obj += length(points[tour[i]], points[tour[i+1]])
+                obj += length(points[tour[-1]], points[0])
+        
+            nmove = 500000
+        
+            for t in [5., 4., 3., 2., 1.8, 1.5, 1.3, 1.2, 1.1, 1., 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02, 0.015, 0.01, 0.0075, 0.005]:
+            #for t in [1]:
+                converge = True
+                print "T scale:", t, " minimum so far:", obj_min
+                # Random move
+                for i in range(nmove):
+                    obj = rand_move(vehicle_tours, points, customers, vehicle_count, vehicle_capacity, obj, t)
+                    if (i % 20000 == 0): print "Iteration", i, " obj value:", obj
+                
+                    if (i % 20000 == 0):
+                        if abs(temp - obj) > 1.e-8:
+                            converge = False
+                        
+                    if obj_min > obj:
+                        obj_min = obj
+                        solution_min = copy.deepcopy(vehicle_tours)
+                print
+                temp = obj
+                if converge: break
+
+        print "Routes for minimize travel distance of vehicles:"
+        for v in range(0, len(solution_min)):
+            print "Vehicle", v, " :", ' '.join(str(cus) for cus in solution_min[v])
+        print "Travel distance: ", obj_min
+        
+        return (obj_min, solution_min)
+    
+
+def myGreedy(alist, points):
     # Start from origin and connect to nearest neighbor if possible
     blist = list(alist)
     clist = []
@@ -36,7 +173,7 @@ def ori_init(alist, points):
     
     return clist
 
-def kopt2(vehicle_t, points, obj_kopt):
+def my2OPT(vehicle_t, points, obj_kopt):
     for i_tour in range(len(vehicle_t)):
         swaplist = list(vehicle_t[i_tour])
         swaplist = [0] + swaplist + [0]
@@ -147,8 +284,6 @@ def rand_swap(vehicle_t, points, vc, obj, t):
         obj += diff_cost
     return obj
 
-import copy
-
 
 def rand_insert(vehicle_t, points, vehicle_capacity, vc, obj, t):
     # Move a customer to a different running vehicle
@@ -184,11 +319,11 @@ def rand_insert(vehicle_t, points, vehicle_capacity, vc, obj, t):
     
     y = random.random()
     if (t < 0.01) & (y < 0.1):
-        flag_kopt2 = True
+        flag = True
     else:
-        flag_kopt2 = False
+        flag = False
     
-    if flag_kopt2 == True:
+    if flag == True:
         vehicle_tmp = copy.deepcopy(vehicle_t)
         customer_moving = vehicle_tmp[v1][c1-1]
         vehicle_tmp[v1].remove(customer_moving)
@@ -201,7 +336,7 @@ def rand_insert(vehicle_t, points, vehicle_capacity, vc, obj, t):
         if len(vehicle_tmp[v1]) == 0:
             vehicle_tmp.remove(vehicle_tmp[v1])
 
-        obj_tmp = kopt2(vehicle_tmp,points,obj_tmp) # use 2-opt method
+        obj_tmp = my2OPT(vehicle_tmp,points,obj_tmp) # use 2-opt method
     
         diff_cost = obj_tmp - obj
     
@@ -218,7 +353,7 @@ def rand_insert(vehicle_t, points, vehicle_capacity, vc, obj, t):
         p = pf/(pf+1.)
     x = random.random()
     
-    if flag_kopt2 == True:
+    if flag == True:
         if (x <= p):
             vehicle_t[:] = vehicle_tmp[:]
             obj = obj_tmp
@@ -265,7 +400,7 @@ def rand_addvehicle(vehicle_t, points, v, c, obj, t):
     if len(vehicle_tmp[v]) == 0:
         vehicle_tmp.remove(vehicle_tmp[v])
 
-    obj_tmp = kopt2(vehicle_tmp,points,obj_tmp) # use 2-opt method
+    obj_tmp = my2OPT(vehicle_tmp,points,obj_tmp) # use 2-opt method
     
     diff_cost = obj_tmp - obj
     
@@ -376,7 +511,7 @@ def solve_it(input_data):
     
     # Considering no capacity constraint and start from origin then connect to nearest neighbor (like traveling salesman problem)
     
-    templist = ori_init(templist, points)
+    templist = myGreedy(templist, points)
     templist.remove(0)
     vehicle_tours = []
     v_used = 1
@@ -406,7 +541,7 @@ def solve_it(input_data):
     obj_min = 1.e20
     solution_min = []
     # Start annealing cycle
-    for j in range(6):
+    for j in range(3):
         print "Annealing cycle", j+1
         obj = 0
         temp = 0
@@ -417,7 +552,7 @@ def solve_it(input_data):
                 obj += length(points[tour[i]], points[tour[i+1]])
             obj += length(points[tour[-1]], points[0])
         
-        nmove = 1000000
+        nmove = 500000
         
         for t in [5., 4., 3., 2., 1.8, 1.5, 1.3, 1.2, 1.1, 1., 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02, 0.015, 0.01, 0.0075, 0.005]:
         #for t in [1]:
@@ -446,15 +581,9 @@ def solve_it(input_data):
     
     outputData = str(obj_min) + ' ' + str(0) + '\n'
     for v in range(0, vehicle_count):
-        if v < len(solution_min):
-            outputData += str(0) + ' ' + ' '.join([str(cus) for cus in solution_min[v]]) + ' ' + str(0) + '\n'
-        else:
-            outputData += str(0) + ' ' + str(0) + '\n'
-    print outputData
+        outputData += str(0) + ' ' + ' '.join([str(cus) for cus in solution_min[v]]) + ' ' + str(0) + '\n'
 
     return outputData
-
-import sys
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
