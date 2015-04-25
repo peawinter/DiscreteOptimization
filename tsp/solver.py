@@ -16,9 +16,9 @@ class Solution():
     def length(self, p1, p2):
         return math.sqrt(((p1.x - p2.x) ** 2) + ((p1.y - p2.y) ** 2))
 
-    # def myDistMat(self):
-    #     self.dm = [[self.length(p1, p2) for p1 in self.points] for p2 in self.points]
-    #     self.dm = np.array(self.dm)
+    def myDistMat(self):
+        self.dm = [[self.length(p1, p2) for p1 in self.points] for p2 in self.points]
+        self.dm = np.array(self.dm)
 
     def random_permutation(self):
         perm = range(self.nc)
@@ -28,7 +28,7 @@ class Solution():
     def augmented_cost(self, sol):
         distance, augmented = 0, 0
         
-        distance = np.sum([self.length[self.points[sol[i - 1]], self.points[sol[i]]] for i in range(self.nc)])
+        distance = np.sum([self.dm[sol[i - 1], sol[i]] for i in range(self.nc)])
         augmented = np.sum([self.penalties[sol[i - 1], sol[i]] for i in range(self.nc)]) + distance
         
         return [distance, augmented]
@@ -135,11 +135,55 @@ class Solution():
         
         self.bits[c1] = 1
         self.bits[c2] = 1
-        
+
+    def myTotalDist(self, sol):
+        return np.sum([self.dm[sol[i - 1], sol[i]] for i in range(self.nc)])
+    
+    def myGreedy(self):
+        sol = [0]
+        for idx0 in range(self.nc - 1):
+            next_dist = max(self.dm[sol[-1]])
+            for idx1 in range(self.nc):
+                if (not idx1 in sol) and next_dist > self.dm[sol[-1]][idx1]:
+                    next_dist = self.dm[sol[-1]][idx1]
+                    next_pt = idx1
+            sol.append(next_pt)
+        return (sol, self.myTotalDist(sol))
+    
+    def my2OPT(self, curr_sol = None):
+        if not curr_sol:
+            (curr_sol, curr_dist) = self.myGreedy()
+        print "Greedy solution distance" + str(curr_dist)
+
+        flag = True
+        while flag:
+            flag = False
+            for idx1 in range(0, self.nc):
+                for idx2 in range(idx1 + 1, self.nc):
+                    
+                    i0, j0 = curr_sol[idx1 - 1], curr_sol[idx1]
+                    i1, j1 = curr_sol[idx2 - 1], curr_sol[idx2]
+                    
+                    gain = self.dm[i0, j0] + self.dm[i1, j1]
+                    cost = self.dm[i0, i1] + self.dm[j0, j1]
+                    
+                    if gain > cost:
+                        curr_sol = curr_sol[:idx1] + curr_sol[idx1:idx2][::-1] + curr_sol[idx2:]
+                        curr_dist = curr_dist - gain + cost
+                        
+                        print "Perform 2-Opt exchange: " + str(curr_dist)
+                        
+                        flag = True
+        return (curr_sol, curr_dist)
     
     def search(self, nodeCount, points):
         self.points = points
         self.nc = nodeCount
+        self.myDistMat()
+        
+        if self.nc > 10000:
+            return self.my2OPT()
+        
         self.l = 0
         self.penalties = np.zeros((nodeCount, nodeCount))
         self.max_no_improv = nodeCount * 20
@@ -150,7 +194,7 @@ class Solution():
 
         alpha = 0.3
     
-        dm = self.myDistMat()
+        
     
         current = {}
         current["vector"] = self.random_permutation()
@@ -171,8 +215,8 @@ class Solution():
             if self.nc == 1889 and best["cost"] <= 323000:
                 return (best["vector"], best["cost"])
                 
-            if self.nc >= 30000 and best["cost"] <= 70000000:
-                return (best["vector"], best["cost"])
+            # if self.nc >= 30000 and best["cost"] <= 70000000:
+            #     return (best["vector"], best["cost"])
 
         return (best["vector"], best["cost"])
 
