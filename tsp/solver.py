@@ -137,22 +137,15 @@ class Solution():
         self.bits[c2] = 1
 
     def myTotalDist(self, sol):
-        return np.sum([self.dm[sol[i - 1], sol[i]] for i in range(self.nc)])
-    
-    def myGreedy(self):
-        sol = [0]
-        for idx0 in range(self.nc - 1):
-            next_dist = max(self.dm[sol[-1]])
-            for idx1 in range(self.nc):
-                if (not idx1 in sol) and next_dist > self.dm[sol[-1]][idx1]:
-                    next_dist = self.dm[sol[-1]][idx1]
-                    next_pt = idx1
-            sol.append(next_pt)
-        return (sol, self.myTotalDist(sol))
+        return np.sum([self.length(self.points[sol[i - 1]], self.points[sol[i]]) for i in range(self.nc)])
+        # return np.sum([self.dm[sol[i - 1], sol[i]] for i in range(self.nc)])
     
     def my2OPT(self, curr_sol = None):
         if not curr_sol:
-            (curr_sol, curr_dist) = self.myGreedy()
+            curr_sol = range(self.nc)
+            random.shuffle(curr_sol)
+            curr_dist = self.myTotalDist(curr_sol)
+            # (curr_sol, curr_dist) = self.myGreedy()
         print "Greedy solution distance" + str(curr_dist)
 
         flag = True
@@ -164,8 +157,8 @@ class Solution():
                     i0, j0 = curr_sol[idx1 - 1], curr_sol[idx1]
                     i1, j1 = curr_sol[idx2 - 1], curr_sol[idx2]
                     
-                    gain = self.dm[i0, j0] + self.dm[i1, j1]
-                    cost = self.dm[i0, i1] + self.dm[j0, j1]
+                    gain = self.length(self.points[i0], self.points[j0]) + self.length(self.points[i1], self.points[j1])
+                    cost = self.length(self.points[i0], self.points[i1]) + self.length(self.points[j0], self.points[j1])
                     
                     if gain > cost:
                         curr_sol = curr_sol[:idx1] + curr_sol[idx1:idx2][::-1] + curr_sol[idx2:]
@@ -174,16 +167,20 @@ class Solution():
                         print "Perform 2-Opt exchange: " + str(curr_dist)
                         
                         flag = True
+                        
+                        # if curr_dist < 70000000:
+                        #     return (curr_sol, curr_dist)
+                            
         return (curr_sol, curr_dist)
     
     def search(self, nodeCount, points):
         self.points = points
         self.nc = nodeCount
-        self.myDistMat()
         
         if self.nc > 10000:
             return self.my2OPT()
         
+        self.myDistMat()
         self.l = 0
         self.penalties = np.zeros((nodeCount, nodeCount))
         self.max_no_improv = nodeCount * 20
