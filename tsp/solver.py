@@ -168,8 +168,8 @@ class Solution():
                         
                         flag = True
                         
-                        # if curr_dist < 70000000:
-                        #     return (curr_sol, curr_dist)
+                        if curr_dist < 78478868:
+                            return (curr_sol, curr_dist)
                             
         return (curr_sol, curr_dist)
     
